@@ -10,13 +10,14 @@
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "prepare": "husky"
+    "pre-commit": "pnpm format && git add -u"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "mongodb": "^6.9.0",
@@ -24,11 +25,11 @@
     "prettier": "^3.3.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^4.17.21",
     "@types/mongoose": "^5.11.96",
     "@types/node": "^22.6.1",
-    "husky": "^9.1.6",
     "nodemon": "^3.1.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.2"

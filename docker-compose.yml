@@ -1,0 +1,38 @@
+services:
+  frontend:
+    image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest
+    build:
+      context: ./peerprep-fe
+      dockerfile: Dockerfile
+    # volumes:
+    #   - ./peerprep-fe:/app  # Mount src directory for hot reloading
+    #   - /app/node_modules  # Prevent overwriting node_modules
+    #   - /app/.next
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+    networks:
+      - peerprep-network
+    env_file:
+      - ./peerprep-fe/.env.production
+  question-service:
+    image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest
+    build:
+      context: ./question-service
+      dockerfile: Dockerfile
+    volumes:
+      - ./question-service:/app  # Mount src directory for hot reloading
+      - ./question-service/node_modules:/app/node_modules
+    ports:
+      - "4001:4001"
+    environment:
+      - NODE_ENV=production
+      - PORT=4001
+    networks:
+      - peerprep-network
+    env_file:
+      - ./question-service/.env.dev
+networks:
+  peerprep-network:
+    driver: bridge

@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata: 
+  name: question-svc
+  labels:
+    type: backend
+    app: question-svc
+spec:
+  selector:
+    matchLabels:
+      type: backend
+      app: question-svc
+  template:
+    metadata:
+      name: question-svc
+      labels:
+        type: backend
+        app: question-svc
+    spec:
+      containers:
+      - name: question-svc
+        image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest
+        # imagePullPolicy: Never # only used for local builds
+        ports:
+        - containerPort: 4001
+        envFrom:
+        - configMapRef:
+            name: question-service-config
+      dnsPolicy: ClusterFirst
+---
+# This is an internal service, not exposed
+apiVersion: v1
+kind: Service
+metadata:
+  name: question-svc
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 4001
+      targetPort: 4001
+  selector:
+    type: backend
+    app: question-svc
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: question-svc
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: question-svc
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
