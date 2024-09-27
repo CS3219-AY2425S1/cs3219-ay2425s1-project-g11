@@ -2,24 +2,32 @@ package utils
 
 import (
 	"os"
-	"log"
 	"errors"
 	"time"
-
-	"authentication-service/models"
 	"github.com/golang-jwt/jwt"
-	"github.com/joho/godotenv"
 )
 
-func GenerateToken(user models.UserModel) (string, error) {
-	err := godotenv.Load(".env.dev")
-    if err != nil {
-        log.Fatalf("Error loading .env file")
-    }
+func GenerateAccountToken(username string, email string) (string, error) {
 	var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 	claims := jwt.MapClaims{
-		"email": user.Email,
-		"name":  user.Name,
+		"name": username,
+		"email":  email,
+		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token valid for 24 hours
+	}
+
+	// Create the token
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+	// Sign the token with the secret key
+	return token.SignedString(jwtSecret)
+}
+
+func GenerateOAuthToken(provider string, oauth_id string, username string) (string, error) {
+	var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
+	claims := jwt.MapClaims{
+		"name": username,
+		"oauth_id":  oauth_id,
+		"provider": provider,
 		"exp":   time.Now().Add(time.Hour * 24).Unix(), // Token valid for 24 hours
 	}
 
@@ -31,10 +39,6 @@ func GenerateToken(user models.UserModel) (string, error) {
 }
 
 func VerifyToken(tokenString string) (*jwt.Token, error) {
-	err := godotenv.Load(".env.dev")
-	if err != nil {
-		return nil, errors.New("error loading .env file")
-	}
 	var jwtSecret = []byte(os.Getenv("JWT_SECRET_KEY"))
 
 	// Parse the token

@@ -14,8 +14,8 @@ import (
     "go.mongodb.org/mongo-driver/bson"
 )
 
-func RegisterUser(c *gin.Context) {
-    var user models.RegistrationRequest
+func ManualRegisterUser(c *gin.Context) {
+    var user models.ManualRegistrationRequest
 
     if err := c.ShouldBindJSON(&user); err != nil {
         c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request data"})
@@ -28,7 +28,7 @@ func RegisterUser(c *gin.Context) {
         return
     }
 
-    var existingUser models.RegistrationRequest
+    var existingUser models.ManualRegistrationRequest
     userCollection := services.GetUserCollection()
     err := userCollection.FindOne(context.TODO(), bson.M{"email": user.Email}).Decode(&existingUser)
     if err == nil {
