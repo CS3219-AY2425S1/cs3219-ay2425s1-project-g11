@@ -97,7 +97,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"difficulty\": 3,\r\n  \"description\": \"What is the capital of Singapore?\",\r\n  \"examples\": [\"The capital might be Yishun\", \"The capital might not be Yishun?\"],\r\n  \"constraints\": \"None\",\r\n  \"tags\": [\"geography\", \"capital\"],\r\n  \"title_slug\": \"what-is-the-capital-of-singapore\",\r\n  \"title\": \"Capital of Singapore\",\r\n  \"pictures\": []\r\n}",
+							"raw": "{\r\n  \"difficulty\": 3,\r\n  \"description\": \"What is the capital of Singapore?\",\r\n  \"examples\": [\"The capital might be Yishun\", \"The capital might not be Yishun?\"],\r\n  \"constraints\": \"None\",\r\n  \"tags\": [\"geography\", \"capital\"],\r\n  \"title_slug\": \"what-is-the-capital-of-singapore\",\r\n  \"title\": \"Capital of Singapore\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -105,13 +105,12 @@
 							}
 						},
 						"url": {
-							"raw": "{{question_base_url}}/questions/",
+							"raw": "{{question_base_url}}/questions",
 							"host": [
 								"{{question_base_url}}"
 							],
 							"path": [
-								"questions",
-								""
+								"questions"
 							]
 						}
 					},
@@ -124,7 +123,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"difficulty\": 3,\r\n  \"description\": \"What is the capital city of France?\",\r\n  \"examples\": [\"Paris is known as the capital of France.\", \"Paris kinda stinky maybe\"],\r\n  \"constraints\": \"None\",\r\n  \"tags\": [\"geography\", \"capital\", \"France\"],\r\n  \"title_slug\": \"capital-of-france\",\r\n  \"title\": \"Capital of France Updated\",\r\n  \"pictures\": []\r\n}",
+							"raw": "{\r\n  \"difficulty\": 3,\r\n  \"description\": \"What is the capital city of France?\",\r\n  \"examples\": [\"Paris is known as the capital of France.\", \"Paris kinda stinky maybe\"],\r\n  \"constraints\": \"None\",\r\n  \"tags\": [\"geography\", \"capital\", \"France\"],\r\n  \"title_slug\": \"capital-of-france\",\r\n  \"title\": \"Capital of France Updated\"\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -132,13 +131,13 @@
 							}
 						},
 						"url": {
-							"raw": "{{question_base_url}}/questions/66f77d44d9fc757910483d70",
+							"raw": "{{question_base_url}}/questions/66f97b1bcdb0da00fc58084f",
 							"host": [
 								"{{question_base_url}}"
 							],
 							"path": [
 								"questions",
-								"66f77d44d9fc757910483d70"
+								"66f97b1bcdb0da00fc58084f"
 							]
 						}
 					},
