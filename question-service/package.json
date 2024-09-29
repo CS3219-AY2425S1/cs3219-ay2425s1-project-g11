@@ -6,7 +6,7 @@
     "test": "test"
   },
   "scripts": {
-    "start": "npx tsc && node dist/app.js",
+    "start": "tsc && node dist/app.js",
     "build": "tsc",
     "format": "prettier --write \"src/**/*.ts\"",
     "test": "echo \"Error: no test specified\" && exit 1",
