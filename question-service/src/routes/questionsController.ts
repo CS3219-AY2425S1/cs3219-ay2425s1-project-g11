@@ -42,6 +42,17 @@ router.put('/:id', async (req: Request, res: Response) => {
   }
 
   try {
+    // Check for duplicate question
+    const existingQuestion = await questionsCollection.findOne({
+      title: parsedResult.data.title,
+    });
+
+    if (existingQuestion) {
+      return res.status(409).json({
+        error: 'This question title already exist',
+      });
+    }
+
     const result = await questionsCollection.updateOne(
       { _id: new ObjectId(id) },
       { $set: parsedResult.data },
@@ -71,6 +82,17 @@ router.post('/', async (req: Request, res: Response) => {
       .json({ error: 'Invalid question data. Please check your input.' });
   }
   try {
+    // Check for duplicate question
+    const existingQuestion = await questionsCollection.findOne({
+      title: parseResult.data.title,
+    });
+
+    if (existingQuestion) {
+      return res.status(409).json({
+        error: 'This question title already exist',
+      });
+    }
+
     const result = await questionsCollection.insertOne(parseResult.data);
     res
       .status(201)
