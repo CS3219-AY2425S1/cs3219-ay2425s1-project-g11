@@ -62,7 +62,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 });
 
 // POST a new question
-router.post('/post', async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   const parseResult = QuestionsSchema.safeParse(req.body);
 
   if (!parseResult.success) {
@@ -72,7 +72,9 @@ router.post('/post', async (req: Request, res: Response) => {
   }
   try {
     const result = await questionsCollection.insertOne(parseResult.data);
-    res.status(201).json(result);
+    res
+      .status(201)
+      .json({ message: 'Question created successfully', data: [result] });
   } catch (error) {
     res.status(500).json({ error: 'Failed to insert question' });
   }
