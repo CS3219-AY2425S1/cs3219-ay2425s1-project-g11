@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: peerprep-config
+type: Opaque
+stringData:
+  NEXT_PUBLIC_QUESTION_SERVICE_URL: "${_NEXT_PUBLIC_QUESTION_SERVICE_URL}"
+  NEXT_PUBLIC_AUTH_SERVICE_URL: "${_NEXT_PUBLIC_AUTH_SERVICE_URL}"

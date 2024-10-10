@@ -1,0 +1,43 @@
+services:
+  frontend:
+    image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest
+    platform: linux/amd64
+    build:
+      context: ./peerprep-fe
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3000:3000"
+    networks:
+      - peerprep-network
+    env_file:
+      - ./peerprep-fe/.env.production
+  question-service:
+    image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest
+    platform: linux/amd64
+    build:
+      context: ./question-service
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "4001:4001"
+    networks:
+      - peerprep-network
+    env_file:
+      - ./question-service/.env.dev
+  user-service:
+    image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest
+    platform: linux/amd64
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+      target: production
+    ports:
+      - "3001:3001"
+    networks:
+      - peerprep-network
+    env_file:
+      - ./user-service/.env
+networks:
+  peerprep-network:
+    driver: bridge
