@@ -6,6 +6,8 @@ import authRoutes from "./routes/auth-routes.js";
 
 const app = express();
 
+const apiVersion = '/api/v1';
+
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cors()); // config cors so that front-end can use
@@ -30,8 +32,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/users", userRoutes);
-app.use("/auth", authRoutes);
+app.use(`${apiVersion}/users`, userRoutes);
+app.use(`${apiVersion}/auth`, authRoutes);
 
 app.get("/", (req, res, next) => {
   console.log("Sending Greetings!");

@@ -1,10 +1,5 @@
+import { getCookie } from '@/lib/utils';
 import axios from 'axios';
-// import { store } from "@/redux/store";
-
-// const getToken = () => {
-//   const state = store.getState();
-//   return state.auth.token;
-// };
 
 const axiosQuestionClient = axios.create({
   baseURL:
@@ -16,23 +11,36 @@ const axiosQuestionClient = axios.create({
 });
 
 const axiosAuthClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 'http://localhost:3001',
+  baseURL:
+    process.env.NEXT_PUBLIC_USER_SERVICE_URL || 'http://localhost:3001/api/v1',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// // Interceptor for authorisation token
-// axiosClient.interceptors.request.use(
-//   (config) => {
-//     const token = getToken();
-//     if (token) {
-//       config.headers["Authorization"] = `Bearer ${token}`;
-//     }
-//     return config;
-//   },
-//   (error) => Promise.reject(error),
-// );
+// Interceptor for authorisation token
+axiosQuestionClient.interceptors.request.use(
+  (config) => {
+    const token = getCookie('access-token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
+
+axiosAuthClient.interceptors.request.use(
+  (config) => {
+    const token = getCookie('access-token');
+    console.log('token', token);
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 // // TODO: Add response interceptors as needed
 // axiosClient.interceptors.response.use(

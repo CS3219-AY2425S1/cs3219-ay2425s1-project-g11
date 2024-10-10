@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/hooks/useAuth';
+import { logout } from '@/lib/auth';
 import { Button } from '@/components/ui/button';
 import { UserCircle, LogOut } from 'lucide-react';
 import {
@@ -10,13 +10,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import Avatar, { genConfig } from 'react-nice-avatar';
+import { useAuthStore } from '@/state/useAuthStore';
 
 export default function Navbar() {
-  const { isAuthenticated, logout, user, isLoading } = useAuth();
+  const { isAuth, clearAuth } = useAuthStore();
 
-  // Generate avatar config based on user's username
-  const avatarConfig = user ? genConfig(user.username) : undefined;
+  const handleLogout = async () => {
+    const res = await logout();
+    if (res) {
+      clearAuth();
+      return;
+    }
+  };
 
   return (
     <nav className="fixed top-0 z-10 w-full bg-gray-800 p-4">
@@ -31,55 +36,40 @@ export default function Navbar() {
           <Link href="/match" className="text-gray-300 hover:text-white">
             Match
           </Link>
-          {!isLoading &&
-            (isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="relative h-8 w-8 overflow-hidden rounded-full p-0"
-                  >
-                    {avatarConfig ? (
-                      <div className="h-full w-full scale-x-[-1] transform">
-                        <Avatar
-                          style={{ width: '100%', height: '100%' }}
-                          {...avatarConfig}
-                        />
-                      </div>
-                    ) : (
-                      <UserCircle className="h-6 w-6 text-gray-300" />
-                    )}
-                    <span className="sr-only">Open user menu</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem disabled>
-                    <span className="font-semibold">Hi {user?.username}</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/profile" className="w-full">
-                      Profile
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
-                    <Link href="/settings" className="w-full">
-                      Settings
-                    </Link>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={logout}>
-                    <LogOut className="mr-2 h-4 w-4" />
-                    <span>Sign out</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Link href="/signin">
-                <Button className="bg-blue-500 hover:bg-blue-600">
-                  Sign In
+          {isAuth ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="relative h-8 w-8 rounded-full"
+                >
+                  <UserCircle className="h-6 w-6 text-gray-300" />
+                  <span className="sr-only">Open user menu</span>
                 </Button>
-              </Link>
-            ))}
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="w-full">
+                    Profile
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="w-full">
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleLogout}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link href="/signin">
+              <Button className="bg-blue-500 hover:bg-blue-600">Sign In</Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

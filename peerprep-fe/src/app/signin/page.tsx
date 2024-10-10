@@ -1,28 +1,45 @@
 'use client';
 import { useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
 import { GithubIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { axiosAuthClient } from '@/network/axiosClient';
+import { login } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+import { useAuthStore } from '@/state/useAuthStore';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const router = useRouter();
+  const setAuth = useAuthStore((state) => state.setAuth);
 
+  // handle login here
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    try {
-      await login(email, password);
-    } catch (error) {
-      setError('Invalid email or password. Please try again.');
-      console.error('Login failed:', error);
+
+    const result = await axiosAuthClient.post('/auth/login', {
+      email: email,
+      password: password,
+    });
+
+    const data = result.data.data;
+    if (result.status === 200) {
+      const token = data.accessToken;
+      const res = await login(token);
+      if (res) {
+        setAuth(true, token);
+        router.push('/');
+        return;
+      }
     }
+    setError(data.error || 'Please provide correct email and password');
+    console.error('Login failed');
   };
 
   return (
@@ -30,7 +47,6 @@ export default function LoginForm() {
       <div className="w-full max-w-md space-y-6 rounded-lg bg-gray-800 p-8 shadow-xl">
         {error && (
           <Alert variant="destructive" className="mb-4">
-            {/* <AlertCircle className="h-4 w-4" /> */}
             <AlertTitle>Error</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
