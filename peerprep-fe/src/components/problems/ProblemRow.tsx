@@ -27,6 +27,7 @@ interface Props {
   handleEdit:
     | ((problem: Problem) => Promise<AxiosResponse<unknown, unknown>>)
     | undefined;
+  rowCallback?: (id: number) => void;
 }
 
 export default function ProblemRow({
@@ -34,6 +35,7 @@ export default function ProblemRow({
   showActions,
   handleDelete,
   handleEdit,
+  rowCallback,
 }: Props) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -68,7 +70,11 @@ export default function ProblemRow({
         </td>
         <td
           className="cursor-pointer px-4 py-2 font-medium transition-colors hover:text-blue-500"
-          onClick={() => setIsDialogOpen(true)}
+          onClick={
+            rowCallback
+              ? () => rowCallback(problem._id)
+              : () => setIsDialogOpen(true)
+          }
         >
           {problem.title}
         </td>

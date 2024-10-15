@@ -14,6 +14,7 @@ interface ProblemTableProps {
   handleEdit?:
     | ((problem: Problem) => Promise<AxiosResponse<unknown, unknown>>)
     | undefined;
+  rowCallback?: (id: number) => void;
 }
 
 export default function ProblemTable({
@@ -22,6 +23,7 @@ export default function ProblemTable({
   showActions = false,
   handleDelete,
   handleEdit,
+  rowCallback,
 }: ProblemTableProps) {
   return (
     <div className="overflow-x-auto">
@@ -64,6 +66,7 @@ export default function ProblemTable({
                   showActions={showActions}
                   handleDelete={handleDelete}
                   handleEdit={handleEdit}
+                  rowCallback={rowCallback}
                 />
               ))}
         </tbody>
