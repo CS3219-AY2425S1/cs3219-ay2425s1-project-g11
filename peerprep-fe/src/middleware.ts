@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const baseURL =
-  process.env.NEXT_PUBLIC_AUTH_SERVICE_URL || 'http://172.17.0.1:3001/api/v1';
+const baseURL = process.env.AUTH_SERVICE_URL || 'http://172.17.0.1:3001/api/v1';
 
 // This function can be marked `async` if using `await` inside
 export async function middleware(request: NextRequest) {
