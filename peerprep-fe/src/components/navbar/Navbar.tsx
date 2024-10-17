@@ -11,14 +11,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/state/useAuthStore';
+import { useRouter } from 'next/navigation';
 
 export default function Navbar() {
   const { isAuth, clearAuth, user } = useAuthStore();
+  const router = useRouter();
 
   const handleLogout = async () => {
     const res = await logout();
     if (res) {
       clearAuth();
+      router.push('/');
       return;
     }
   };

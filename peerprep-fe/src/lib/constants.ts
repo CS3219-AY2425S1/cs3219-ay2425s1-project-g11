@@ -21,3 +21,10 @@ export const INITIAL_PROBLEM_DATA: Problem = {
   tags: [],
   title_slug: '',
 };
+
+export const SUPPORTED_PROGRAMMING_LANGUAGES = ['C++', 'Java', 'Python'];
+
+export const DEFAULT_CODE = `int main() {
+    "Hello World!";
+    return 0;
+}`;
