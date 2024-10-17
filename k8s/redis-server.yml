@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-server
+  labels:
+    app: redis-server
+spec:
+  selector:
+    matchLabels:
+      app: redis-server
+  template:
+    metadata:
+      labels:
+        app: redis-server
+    spec:
+      containers:
+        - name: redis-server
+          image: redis:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 6379
+      dnsPolicy: ClusterFirst
+
+---
+# This is an internal service, not exposed
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-server
+spec:
+  type: ClusterIP  # Internal service type
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    app: redis-server
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: redis-server
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: redis-server
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80

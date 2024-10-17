@@ -1,0 +1,160 @@
+steps:
+  # Step 1: build and push all images to Artifact Registry
+
+  # Build and push peerprep-fe
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest",
+        "--build-arg",
+        "NEXT_PUBLIC_QUESTION_SERVICE_URL=${_NEXT_PUBLIC_QUESTION_SERVICE_URL}",
+        "--build-arg",
+        "NEXT_PUBLIC_AUTH_SERVICE_URL=${_NEXT_PUBLIC_AUTH_SERVICE_URL}",
+        "--build-arg",
+        "AUTH_SERVICE_URL=${_AUTH_SERVICE_URL}",
+        "--build-arg",
+        "QUESTION_SERVICE_URL=${_QUESTION_SERVICE_URL}",
+        "-f",
+        "peerprep-fe/Dockerfile",
+        "peerprep-fe",
+      ]
+
+  # Push the peerprep-fe image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest",
+      ]
+
+  # Build and push question-service
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest",
+        "-f",
+        "question-service/Dockerfile",
+        "question-service",
+      ]
+
+  # Push the question-service image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest",
+      ]
+
+  # Build and push user-service
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest",
+        "-f",
+        "user-service/Dockerfile",
+        "user-service",
+      ]
+
+  # Push the user-service image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest",
+      ]
+
+  # Step 2: Clean up and deploy to GKE
+
+  # Clean up before deploying peerprep-fe
+  - name: "ubuntu"
+    args: ["rm", "-rf", "output"]
+
+  # Deploy peerprep-fe to Google Kubernetes Engine (GKE)
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=k8s/peerprep-fe.yml
+      - --image=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest
+      - --location=asia-southeast1
+      - --cluster=cs3219-g11-peerprep-kubes
+
+  # Clean up before deploying question-service
+  - name: "ubuntu"
+    args: ["rm", "-rf", "output"]
+
+  # Deploy question-service to Google Kubernetes Engine (GKE)
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=k8s/question-service.yml
+      - --image=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest
+      - --location=asia-southeast1
+      - --cluster=cs3219-g11-peerprep-kubes
+
+  # Clean up before deploying user-service
+  - name: "ubuntu"
+    args: ["rm", "-rf", "output"]
+
+  # Deploy user-service to Google Kubernetes Engine (GKE)
+  - name: "gcr.io/cloud-builders/gke-deploy"
+    args:
+      - run
+      - --filename=k8s/user-service.yml
+      - --image=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest
+      - --location=asia-southeast1
+      - --cluster=cs3219-g11-peerprep-kubes
+
+  # Step 3: update the deployments with the new images
+
+  # Update the peerprep-fe deployment
+  - name: "gcr.io/cloud-builders/kubectl"
+    args:
+      - "set"
+      - "image"
+      - "deployment/peerprep-fe"
+      - "peerprep-fe=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest"
+    env:
+      - "CLOUDSDK_COMPUTE_ZONE=asia-southeast1"
+      - "CLOUDSDK_CONTAINER_CLUSTER=cs3219-g11-peerprep-kubes"
+
+  # Update the question-service deployment
+  - name: "gcr.io/cloud-builders/kubectl"
+    args:
+      - "set"
+      - "image"
+      - "deployment/question-svc"
+      - "question-svc=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest"
+    env:
+      - "CLOUDSDK_COMPUTE_ZONE=asia-southeast1"
+      - "CLOUDSDK_CONTAINER_CLUSTER=cs3219-g11-peerprep-kubes"
+
+  # Update the user-service deployment hi
+  - name: "gcr.io/cloud-builders/kubectl"
+    args:
+      - "set"
+      - "image"
+      - "deployment/user-svc"
+      - "user-svc=asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest"
+    env:
+      - "CLOUDSDK_COMPUTE_ZONE=asia-southeast1"
+      - "CLOUDSDK_CONTAINER_CLUSTER=cs3219-g11-peerprep-kubes"
+
+substitutions:
+  _NEXT_PUBLIC_QUESTION_SERVICE_URL: ""
+  _NEXT_PUBLIC_AUTH_SERVICE_URL: ""
+  _AUTH_SERVICE_URL: ""
+  _QUESTION_SERVICE_URL: ""
+
+options:
+  dynamic_substitutions: true
+
+images:
+  - "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/peerprep-fe:latest"
+  - "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest"
+  - "asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/user-svc:latest"

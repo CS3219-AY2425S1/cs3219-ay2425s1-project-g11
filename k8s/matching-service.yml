@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: matching-svc
+  labels:
+    type: backend
+    app: matching-svc
+spec:
+  selector:
+    matchLabels:
+      type: backend
+      app: matching-svc
+  template:
+    metadata:
+      name: matching-svc
+      labels:
+        type: backend
+        app: matching-svc
+    spec:
+      containers:
+        - name: matching-svc
+          image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/matching-svc:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 5001
+          envFrom:
+            - secretRef:
+                name: matching-service-config
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1"
+      dnsPolicy: ClusterFirst
+---
+# This is an internal service, not exposed
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-svc
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5001
+      targetPort: 5001
+  selector:
+    type: backend
+    app: matching-svc
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: matching-svc
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: matching-svc
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
