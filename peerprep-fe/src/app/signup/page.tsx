@@ -7,6 +7,7 @@ import { GithubIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { axiosAuthClient } from '@/network/axiosClient';
 
 export default function SignUpPage() {
   const [name, setName] = useState('');
@@ -20,31 +21,26 @@ export default function SignUpPage() {
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    const apiEndpoint = 'http://localhost:3001/users';
+
     // const type = 'user';
     if (password !== confirmPassword) {
       router.push('/signup');
       setError('Passwords do not match');
       return;
     }
-    const result = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        username: name,
-        email: email,
-        password: password,
-      }),
+
+    const result = await axiosAuthClient.post('/users', {
+      username: name,
+      email: email,
+      password: password,
     });
 
-    const data = await result.json();
+    const data = result.data;
 
-    if (result.ok) {
+    if (result.status === 201) {
       const token = data.token;
       localStorage.setItem('token', token);
-      router.push('/');
+      router.push('/signin');
     } else {
       setError('Username or Email already exists');
       console.error('Sign up failed');
