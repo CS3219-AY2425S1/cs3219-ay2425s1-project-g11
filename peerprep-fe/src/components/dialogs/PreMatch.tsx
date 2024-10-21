@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FilterSelect } from '@/app/(main)/components/filter/FilterSelect';
 import { TopicsPopover } from '@/app/(main)/components/filter/TopicsPopover';
 import { sendMessageToQueue } from '@/lib/rabbitmq';
-import { axiosAuthClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { DIFFICULTY_OPTIONS } from '@/lib/constants';
 
 export function PreMatch() {
@@ -24,6 +24,7 @@ export function PreMatch() {
 
   const handleConfirm = async () => {
     try {
+      console.log('Sending message to queue');
       const profileDetails = await getProfileDetails();
       const message = {
         _id: profileDetails.id,
@@ -33,6 +34,7 @@ export function PreMatch() {
         difficulty: difficulty,
       };
       await sendMessageToQueue(message);
+      console.log('Message sent to queue');
       setOpen(false);
       router.push('/match');
     } catch (err) {
@@ -41,7 +43,7 @@ export function PreMatch() {
   };
 
   const getProfileDetails = async () => {
-    const result = await axiosAuthClient.get('/auth/verify-token');
+    const result = await axiosClient.get('/auth/verify-token');
     return result.data.data;
   };
 

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useFilteredProblems } from '@/hooks/useFilteredProblems';
 import FilterBar from '../(main)/components/filter/FilterBar';
 import ProblemTable from '../../components/problems/ProblemTable';
-import { axiosQuestionClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { Problem } from '@/types/types';
 import { isAxiosError } from 'axios';
 import ProblemInputDialog from '@/components/problems/ProblemInputDialog';
@@ -24,7 +24,7 @@ function AdminPage() {
   } = useFilteredProblems();
 
   const handleDelete = async (id: number) => {
-    const res = await axiosQuestionClient.delete(`/questions/${id}`);
+    const res = await axiosClient.delete(`/questions/${id}`);
     if (res.status !== 200) {
       throw new Error('Failed to delete problem');
     }
@@ -34,7 +34,7 @@ function AdminPage() {
 
   const handleEdit = async (problem: Problem) => {
     try {
-      const res = await axiosQuestionClient.put(`/questions/${problem._id}`, {
+      const res = await axiosClient.put(`/questions/${problem._id}`, {
         difficulty: problem.difficulty,
         description: problem.description,
         examples: problem.examples,
@@ -78,7 +78,7 @@ function AdminPage() {
       return;
     }
     try {
-      const res = await axiosQuestionClient.post(`/questions`, {
+      const res = await axiosClient.post(`/questions`, {
         difficulty: problem.difficulty,
         description: problem.description,
         examples: problem.examples,

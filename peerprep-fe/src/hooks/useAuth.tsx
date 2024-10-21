@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { axiosAuthClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { User } from '@/types/types';
 import Cookies from 'js-cookie';
 
@@ -27,7 +27,7 @@ export function useAuth() {
       }
 
       // Verify token with the server
-      const response = await axiosAuthClient.get('/auth/verify-token', {
+      const response = await axiosClient.get('/auth/verify-token', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -51,7 +51,7 @@ export function useAuth() {
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await axiosAuthClient.post('/auth/login', {
+      const response = await axiosClient.post('/auth/login', {
         email,
         password,
       });
