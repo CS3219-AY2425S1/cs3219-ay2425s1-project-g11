@@ -14,39 +14,39 @@ export default function LoadingPage() {
   const router = useRouter();
   const { user } = useAuthStore();
 
-  const startConsumingMessages = async () => {
-    try {
-      await consumeMessageFromQueue(user?.id ?? '').then((message) => {
-        if (message.status === 'matched') {
-          console.log('Match found, your partner is', message.partner);
-          setMatchStatus('matched');
-
-          // setTimeout(() => {
-          //   router.push(`/collaboration`);
-          // }, 2000);
-        } else {
-          console.log('Match failed');
-          setMatchStatus('failed');
-
-          // setTimeout(() => {
-          //   router.push(`/`);
-          // }, 4500);
-        }
-      });
-    } catch (error) {
-      console.error('Error consuming message:', error);
-      setMatchStatus('error');
-    }
-  };
-
   useEffect(() => {
+    const startConsumingMessages = async () => {
+      try {
+        await consumeMessageFromQueue(user?.id ?? '').then((message) => {
+          if (message.status === 'matched') {
+            console.log('Match found, your partner is', message.partner);
+            setMatchStatus('matched');
+
+            // setTimeout(() => {
+            //   router.push(`/collaboration`);
+            // }, 2000);
+          } else {
+            console.log('Match failed');
+            setMatchStatus('failed');
+
+            // setTimeout(() => {
+            //   router.push(`/`);
+            // }, 4500);
+          }
+        });
+      } catch (error) {
+        console.error('Error consuming message:', error);
+        setMatchStatus('error');
+      }
+    };
+
     startConsumingMessages();
     const timer = setInterval(() => {
       setElapsedTime((prevTime) => prevTime + 1);
     }, 1000);
     setUsersWaiting(5);
     return () => clearInterval(timer);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (elapsedTime >= 60 && matchStatus === 'searching') {
