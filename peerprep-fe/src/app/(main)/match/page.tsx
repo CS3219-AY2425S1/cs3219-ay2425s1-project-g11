@@ -16,7 +16,7 @@ export default function LoadingPage() {
 
   const startConsumingMessages = async () => {
     try {
-      await consumeMessageFromQueue(user?.id!).then((message) => {
+      await consumeMessageFromQueue(user?.id ?? '').then((message) => {
         if (message.status === 'matched') {
           console.log('Match found, your partner is', message.partner);
           setMatchStatus('matched');
