@@ -2,7 +2,6 @@
 'use server';
 
 import { connect } from 'amqplib';
-import { redirect } from 'next/navigation';
 
 export const sendMessageToQueue = async (message: Record<string, any>) => {
   try {
