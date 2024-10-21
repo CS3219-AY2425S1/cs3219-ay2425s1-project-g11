@@ -13,6 +13,8 @@ services:
       context: ./peerprep-fe
       dockerfile: Dockerfile
       target: production
+    volumes:
+      - /app/node_modules
     ports:
       - "3000:3000"
     networks:
@@ -30,6 +32,8 @@ services:
       - "4001:4001"
     networks:
       - peerprep-network
+    volumes:
+      - /app/node_modules
     env_file:
       - ./question-service/.env.dev
   user-service:
@@ -43,6 +47,8 @@ services:
       - "3001:3001"
     networks:
       - peerprep-network
+    volumes:
+      - /app/node_modules
     env_file:
       - ./user-service/.env
   matching-service:
@@ -52,8 +58,7 @@ services:
       dockerfile: Dockerfile
       target: development
     volumes:
-      - ./matching-service:/app
-      - ./matching-service/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "5001:5001"
     networks:
