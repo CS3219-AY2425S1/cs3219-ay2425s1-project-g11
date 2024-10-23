@@ -14,7 +14,7 @@ services:
       target: development
     volumes:
       - ./peerprep-fe:/app
-      - ./peerprep-fe/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "3000:3000"
     networks:
@@ -29,7 +29,7 @@ services:
       target: development
     volumes:
       - ./question-service:/app
-      - ./question-service/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "4001:4001"
     networks:
@@ -44,7 +44,7 @@ services:
       target: development
     volumes:
       - ./user-service:/app
-      - ./user-service/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "3001:3001"
     networks:
@@ -59,7 +59,7 @@ services:
       target: development
     volumes:
       - ./matching-service:/app
-      - ./matching-service/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "5001:5001"
     networks:

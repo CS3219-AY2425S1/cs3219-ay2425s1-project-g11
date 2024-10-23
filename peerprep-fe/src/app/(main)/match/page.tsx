@@ -44,7 +44,7 @@ export default function LoadingPage() {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [user?.id]);
 
   useEffect(() => {
     if (elapsedTime >= 60 && matchStatus === 'searching') {
