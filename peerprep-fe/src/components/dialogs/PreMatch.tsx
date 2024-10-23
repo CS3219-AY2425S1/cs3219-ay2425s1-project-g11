@@ -31,6 +31,7 @@ export function PreMatch() {
         topic: selectedTopics[0] || '', // TODO: change to list, but current backend only accepts 1
         // topic: selectedTopics.join(','),
         difficulty: difficulty,
+        type: "match",
       };
       await sendMessageToQueue(message);
       setOpen(false);

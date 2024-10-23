@@ -1,6 +1,6 @@
 import amqp, { Channel } from "amqplib";
 import { User } from "../types";
-import { processNewUser } from "./matchingService";
+import { processNewMessage } from "./matchingService";
 import { SECONDS } from "../lib/constants";
 
 let channel: Channel;
@@ -17,7 +17,7 @@ export const initRabbitMQ = async (): Promise<void> => {
     console.log("Connected to RabbitMQ");
 
     // Subscribe to the queue upon successful connection
-    await subscribeToQueue<User>(QUEUE, processNewUser);
+    await subscribeToQueue<User>(QUEUE, processNewMessage);
 
     // when connection close, initiate reconnection
     connection.on("close", async () => {

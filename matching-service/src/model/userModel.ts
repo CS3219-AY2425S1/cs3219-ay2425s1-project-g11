@@ -61,3 +61,24 @@ export const transferToTopicQueue = async (user: User): Promise<void> => {
     console.error(`Error storing user in topic queue for topic: ${user.topic}`);
   }
 };
+
+export const removeUserFromQueues = async (userId: string) => {
+  const allTopics = await redisClient.keys("topic:*");
+  const allDifficulties = await redisClient.keys("difficulty:*");
+
+  const removeFromQueue = async (key: string) => {
+    const users = await redisClient.zRange(key, 0, -1);
+    for (const userString of users) {
+      const user = JSON.parse(userString);
+      if (user._id === userId) {
+        await removeUserFromKey(key, userString);
+        console.log(`Removed user ${userId} from queue ${key}`);
+        break;
+      }
+    }
+  };
+
+  for (const key of [...allTopics, ...allDifficulties]) {
+    await removeFromQueue(key);
+  }
+};

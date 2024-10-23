@@ -19,6 +19,7 @@
     "@radix-ui/react-scroll-area": "^1.2.0",
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-slot": "^1.1.0",
+    "@stomp/stompjs": "^7.0.0",
     "@types/js-cookie": "^3.0.6",
     "amqplib": "^0.10.4",
     "axios": "^1.7.7",
