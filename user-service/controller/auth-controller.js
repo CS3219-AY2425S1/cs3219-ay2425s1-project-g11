@@ -27,6 +27,7 @@ export async function handleLogin(req, res) {
           expiresIn: '5d',
         },
       );
+
       return res.status(200).json({
         message: 'User logged in',
         data: { accessToken, ...formatUserResponse(user) },
@@ -42,6 +43,7 @@ export async function handleLogin(req, res) {
 export async function handleVerifyToken(req, res) {
   try {
     const verifiedUser = req.user;
+
     return res
       .status(200)
       .json({ message: 'Token verified', data: verifiedUser });

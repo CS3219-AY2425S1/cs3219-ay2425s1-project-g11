@@ -16,7 +16,7 @@ export default function LoadingPage() {
   const router = useRouter();
   const { user } = useAuthStore();
   const { isConnected, lastMessage, sendMessage, disconnect } = useWebSocket(
-    process.env.NEXT_PUBLIC_MATCHING_SERVICE_WS_URL || 'ws://localhost:5001/ws',
+    `${process.env.NEXT_PUBLIC_API_GATEWAY_URL}/matching/ws`,
   );
 
   useEffect(() => {

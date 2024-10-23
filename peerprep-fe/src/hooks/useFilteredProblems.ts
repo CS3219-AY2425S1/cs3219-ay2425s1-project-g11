@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { axiosQuestionClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { Problem } from '@/types/types';
 
 export interface FilterState {
@@ -31,7 +31,7 @@ export function useFilteredProblems() {
       const url = params.toString()
         ? `/questions?${params.toString()}`
         : '/questions';
-      const response = await axiosQuestionClient.get(url);
+      const response = await axiosClient.get(url);
       setProblems(response.data);
     } catch (error) {
       console.error('Error fetching problems:', error);

@@ -2,10 +2,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { logout } from '@/lib/auth';
-// import { sendMessageToQueue } from '@/lib/rabbitmq';
 import { Button } from '@/components/ui/button';
-// import { axiosAuthClient } from '@/network/axiosClient';
-import { UserCircle, LogOut } from 'lucide-react';
+import { LogOut, UserCircle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/state/useAuthStore';
+import Avatar, { genConfig } from 'react-nice-avatar';
 import { useQuestionStore } from '@/state/useQuestionStore';
 import { PreMatch } from '@/components/dialogs/PreMatch';
 import { usePathname } from 'next/navigation';
@@ -32,6 +31,8 @@ export default function Navbar() {
       return;
     }
   };
+
+  const avatarConfig = user ? genConfig(user.username) : undefined;
 
   return (
     <nav className="fixed top-0 z-10 w-full bg-gray-800 p-4">
@@ -67,11 +68,23 @@ export default function Navbar() {
                   size="icon"
                   className="relative h-8 w-8 rounded-full"
                 >
-                  <UserCircle className="h-6 w-6 text-gray-300" />
+                  {avatarConfig ? (
+                    <div className="h-full w-full scale-x-[-1] transform">
+                      <Avatar
+                        style={{ width: '100%', height: '100%' }}
+                        {...avatarConfig}
+                      />
+                    </div>
+                  ) : (
+                    <UserCircle className="h-6 w-6 text-gray-300" />
+                  )}
                   <span className="sr-only">Open user menu</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem disabled>
+                  <span className="font-semibold">Hi {user?.username}</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/profile" className="w-full">
                     Profile

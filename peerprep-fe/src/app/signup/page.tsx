@@ -5,7 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { GithubIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { axiosAuthClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/state/useAuthStore';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ export default function SignUpPage() {
       setError('Passwords do not match');
       return;
     }
-    const result = await axiosAuthClient.post('/users', {
+    const result = await axiosClient.post('/users', {
       username: name,
       email: email,
       password: password,
@@ -38,7 +38,7 @@ export default function SignUpPage() {
 
     if (result.request.status === 201) {
       //Auto login after accoutn creation
-      const loginResult = await axiosAuthClient.post('/auth/login', {
+      const loginResult = await axiosClient.post('/auth/login', {
         email: email,
         password: password,
       });

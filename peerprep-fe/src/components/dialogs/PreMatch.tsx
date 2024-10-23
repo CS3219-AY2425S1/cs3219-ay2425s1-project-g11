@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { FilterSelect } from '@/app/(main)/components/filter/FilterSelect';
 import { TopicsPopover } from '@/app/(main)/components/filter/TopicsPopover';
 import { sendMessageToQueue } from '@/lib/rabbitmq';
-import { axiosAuthClient } from '@/network/axiosClient';
+import { axiosClient } from '@/network/axiosClient';
 import { DIFFICULTY_OPTIONS } from '@/lib/constants';
 
 export function PreMatch() {
@@ -41,7 +41,7 @@ export function PreMatch() {
   };
 
   const getProfileDetails = async () => {
-    const result = await axiosAuthClient.get('/auth/verify-token');
+    const result = await axiosClient.get('/auth/verify-token');
     return result.data.data;
   };
 
@@ -55,7 +55,7 @@ export function PreMatch() {
           Match
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="bg-black sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Choose Match Preferences</DialogTitle>
         </DialogHeader>

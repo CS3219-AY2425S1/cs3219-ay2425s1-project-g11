@@ -4,7 +4,5 @@ metadata:
   name: peerprep-config
 type: Opaque
 stringData:
-  NEXT_PUBLIC_QUESTION_SERVICE_URL: "${_NEXT_PUBLIC_QUESTION_SERVICE_URL}"
-  NEXT_PUBLIC_AUTH_SERVICE_URL: "${_NEXT_PUBLIC_AUTH_SERVICE_URL}"
-  AUTH_SERVICE_URL: "${_AUTH_SERVICE_URL}"
-  QUESTION_SERVICE_URL: "${_QUESTION_SERVICE_URL}"
+  NEXT_PUBLIC_API_GATEWAY_URL: "${_NEXT_PUBLIC_API_GATEWAY_URL}"
+  # Removed individual service URLs as they are no longer needed

@@ -16,6 +16,12 @@ app.options('*', cors());
 
 const apiVersion = '/api/v1';
 
+// Logging middleware for incoming requests
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
+  next();
+});
+
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*'); // "*" -> Allow all links to access
 
