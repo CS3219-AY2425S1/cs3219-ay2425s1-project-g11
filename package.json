@@ -1,13 +1,13 @@
 {
 	"scripts": {
 		"pre-commit": "npm run --workspaces pre-commit",
-		"prepare": "husky"
+		"prepare": "husky && husky install"
 	},
 	"devDependencies": {
 		"@types/cors": "^2.8.17",
 		"@types/express": "^5.0.0",
 		"@types/jsonwebtoken": "^9.0.7",
-		"husky": "^9.1.6"
+		"husky": "^8.0.0"
 	},
 	"workspaces": [
 		"question-service",

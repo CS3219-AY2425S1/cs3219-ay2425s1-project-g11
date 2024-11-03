@@ -19,17 +19,23 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
-import { MonacoBinding } from 'y-monaco'
+import { MonacoBinding } from 'y-monaco';
 import { editor as MonacoEditor } from 'monaco-editor';
 
 const CollaborationPage = () => {
-  const [selectionProblem, setSelectionProblem] = useState<Problem | null>(null);
+  const [selectionProblem, setSelectionProblem] = useState<Problem | null>(
+    null,
+  );
   const searchParams = useSearchParams();
   const matchId = searchParams.get('matchId');
   const [language, setLanguage] = useState(SUPPORTED_PROGRAMMING_LANGUAGES[0]);
   const { problems, isLoading } = useFilteredProblems();
-  const [connectedClients, setConnectedClients] = useState<Set<number>>(new Set());
-  const [disconnectionAlert, setDisconnectionAlert] = useState<string | null>(null);
+  const [connectedClients, setConnectedClients] = useState<Set<number>>(
+    new Set(),
+  );
+  const [disconnectionAlert, setDisconnectionAlert] = useState<string | null>(
+    null,
+  );
 
   // Layout states
   const [leftWidth, setLeftWidth] = useState(50);
@@ -37,8 +43,10 @@ const CollaborationPage = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const providerRef = useRef<WebsocketProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
-  const editorRef = React.useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
-  const sockServerURI = process.env.SOCK_SERVER_URL || "ws://localhost:4444";
+  const editorRef = React.useRef<MonacoEditor.IStandaloneCodeEditor | null>(
+    null,
+  );
+  const sockServerURI = process.env.SOCK_SERVER_URL || 'ws://localhost:4444';
 
   // Handle dragging of the divider
   const handleMouseDown = useCallback(() => {
@@ -68,21 +76,21 @@ const CollaborationPage = () => {
 
   const handleEditorMount = (editor: any, monaco: any) => {
     if (!matchId) {
-      console.error("Cannot mount editor: Match ID is undefined");
+      console.error('Cannot mount editor: Match ID is undefined');
       return;
     }
     editorRef.current = editor;
     const doc = new Y.Doc();
     providerRef.current = new WebsocketProvider(sockServerURI, matchId, doc);
-    const type = doc.getText("monaco");
+    const type = doc.getText('monaco');
 
     // Set up awareness handling
     providerRef.current.awareness.setLocalState({
       client: Math.floor(Math.random() * 1000000), // Generate random client ID
       user: {
         name: `User ${Math.floor(Math.random() * 100)}`, // You can replace this with actual user info
-        color: `#${Math.floor(Math.random()*16777215).toString(16)}` // Random color
-      }
+        color: `#${Math.floor(Math.random() * 16777215).toString(16)}`, // Random color
+      },
     });
 
     // Handle client updates
@@ -111,13 +119,13 @@ const CollaborationPage = () => {
     const model = editorRef.current?.getModel();
     if (editorRef.current && model) {
       bindingRef.current = new MonacoBinding(
-        type, 
-        model, 
-        new Set([editorRef.current]), 
-        providerRef.current.awareness
+        type,
+        model,
+        new Set([editorRef.current]),
+        providerRef.current.awareness,
       );
     } else {
-      console.error("Monaco editor model is null");
+      console.error('Monaco editor model is null');
     }
   };
 
@@ -212,9 +220,7 @@ const CollaborationPage = () => {
           </div>
         </div>
 
-        <ProblemCodeEditor
-          onMount={handleEditorMount}
-        />
+        <ProblemCodeEditor onMount={handleEditorMount} />
       </div>
     </div>
   );

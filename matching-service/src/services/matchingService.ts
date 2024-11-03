@@ -55,7 +55,7 @@ export const processOldUsers = async (): Promise<void> => {
       const match = await checkMatch(`difficulty:${user.difficulty}`);
       if (match) {
         // Send to user subscribed queues if there is a match
-        const matchId = generateMatchId(match._id, user._id)
+        const matchId = generateMatchId(match._id, user._id);
         await sendToQueue(match._id, {
           status: "matched",
           matchId: matchId,
@@ -102,7 +102,7 @@ export const processNewMessage = async (user: User): Promise<void> => {
     const match = await checkMatch(`topic:${user.topic}`);
     // match found
     if (match) {
-      const matchId = generateMatchId(match._id, user._id)
+      const matchId = generateMatchId(match._id, user._id);
       await sendToQueue(match._id, {
         status: "matched",
         matchId: matchId,
