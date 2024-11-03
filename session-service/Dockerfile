@@ -2,7 +2,7 @@
 FROM node:18-alpine AS base
 
 # Install pnpm globally
-RUN npm install -g pnpm
+RUN npm install -g pnpm nodemon
 
 # Set the working directory in the container
 WORKDIR /app

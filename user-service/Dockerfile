@@ -5,7 +5,7 @@ FROM node:18-alpine AS base
 WORKDIR /usr/src/app
 
 # Install pnpm globally
-RUN npm install -g pnpm
+RUN npm install -g pnpm nodemon
 
 # Copy package.json and pnpm-lock.yaml
 COPY package.json ./
