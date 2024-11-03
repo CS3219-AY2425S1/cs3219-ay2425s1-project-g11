@@ -7,18 +7,18 @@ RUN npm install -g pnpm nodemon
 # Set the working directory in the container
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml
-COPY package.json ./
-
-RUN pnpm install
+# Copy package files
+COPY package*.json ./
+COPY pnpm-lock.yaml ./
 
 # Development stage
 FROM base AS development
 
-COPY src ./src
-COPY tsconfig.json ./
+# Install ALL dependencies (both prod and dev)
+RUN pnpm install
 
-# Note: Don't expose ports here, Compose will handle that for us
+# Copy source files
+COPY . .
 
 CMD ["pnpm", "dev"]
 

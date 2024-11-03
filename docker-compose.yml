@@ -15,13 +15,17 @@ services:
       target: development
     volumes:
       - ./peerprep-fe:/app
-      - ./peerprep-fe/node_modules:/app/node_modules
+      - frontend-node-modules:/app/node_modules
+      - frontend-next:/app/.next
     ports:
       - "3000:3000"
     networks:
       - peerprep-network
     env_file:
       - ./peerprep-fe/.env.production
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
 
   question-service:
     image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/question-svc:latest
@@ -79,7 +83,7 @@ services:
       target: development
     volumes:
       - ./session-service:/app
-      - ./session-service/node_modules:/app/node_modules
+      - /app/node_modules
     ports:
       - "4444:4444"
     networks:
@@ -106,3 +110,7 @@ services:
 networks:
   peerprep-network:
     driver: bridge
+
+volumes:
+  frontend-node-modules:
+  frontend-next:

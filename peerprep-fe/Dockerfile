@@ -1,16 +1,15 @@
 FROM node:18-alpine AS base
 
+# Install pnpm
 RUN npm install -g pnpm
 
 WORKDIR /app
 
-# Copy package.json
-COPY package*.json ./
+# Copy package files
+COPY package.json pnpm-lock.yaml ./
 
-RUN pnpm install
-
-# Install zustand explicitly
-RUN pnpm add zustand
+# Install dependencies with exact versions
+RUN pnpm install --frozen-lockfile
 
 # Development stage
 FROM base AS development
@@ -19,27 +18,26 @@ ENV NODE_ENV=development
 # Copy the rest of the application code
 COPY . .
 
-# Note: Don't expose ports here, Compose will handle that for us
+# Install Next.js explicitly and verify installation
+RUN pnpm add next@14.2.12 react@18 react-dom@18
+RUN pnpm install
+RUN ls -la node_modules/.bin/next
 
-# Start the app in dev mode with hot-reloading
-CMD ["pnpm", "dev"]
+# Start the app in dev mode
+CMD ["pnpm", "run", "dev"]
 
 # Production stage
 FROM base AS production
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Accept build argument
 ARG NEXT_PUBLIC_API_GATEWAY_URL
-
-# Set environment variable
 ENV NEXT_PUBLIC_API_GATEWAY_URL=$NEXT_PUBLIC_API_GATEWAY_URL
 
 COPY . .
+RUN pnpm install --frozen-lockfile
 RUN pnpm build
 
-# Expose the port the app runs on in production mode
 EXPOSE ${PORT}
 
-# Start the app in production mode
 CMD ["pnpm", "start"]
