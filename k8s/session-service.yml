@@ -18,6 +18,32 @@ spec:
         - name: session-svc
           image: asia-southeast1-docker.pkg.dev/cs3219-g11-peerprep/cs3219-g11-repo/session-svc:latest
           imagePullPolicy: Always
+          livenessProbe:  # Add this block for liveness probe
+            httpGet:
+              path: /
+              port: 4444
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:  # Add this block for readiness probe
+            httpGet:
+              path: /
+              port: 4444
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          # Add additional liveness probe for port 5555
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5555
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          # Add additional readiness probe for port 5555
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5555
+            initialDelaySeconds: 5
+            periodSeconds: 5
           ports:
             - containerPort: 4444
             - containerPort: 5555
@@ -38,6 +64,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: session-svc
+  annotations:
+    cloud.google.com/neg: '{"ingress": true}'
 spec:
   type: LoadBalancer
   ports:

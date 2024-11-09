@@ -10,7 +10,7 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: nginx-ingress-session
+  name: nginx-ingress-all
   annotations: 
     kubernetes.io/ingress.global-static-ip-name: nginx-api
     networking.gke.io/managed-certificates: peerprep-fe-cs3219-g11-nginx-all
