@@ -14,12 +14,6 @@ export function FilterBadge({ filterType, value, onRemove }: FilterBadgeProps) {
             : value === 'hard'
               ? 'bg-red-600'
               : 'bg-gray-600';
-      case 'Status':
-        return value === 'todo'
-          ? 'bg-yellow-600'
-          : value === 'solved'
-            ? 'bg-green-600'
-            : 'bg-gray-600';
       case 'Topics':
         return 'bg-indigo-600';
     }

@@ -6,7 +6,7 @@ import { TopicsPopover } from './TopicsPopover';
 import { FilterState } from '@/hooks/useFilteredProblems';
 import { useState, useEffect } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { DIFFICULTY_OPTIONS, STATUS_OPTIONS } from '@/lib/constants';
+import { DIFFICULTY_OPTIONS } from '@/lib/constants';
 
 interface FilterBarProps {
   filters: FilterState;
@@ -46,12 +46,6 @@ export default function FilterBar({
           onChange={(value) => updateFilter('difficulty', value)}
           value={filters.difficulty || ''}
         />
-        <FilterSelect
-          placeholder="Status"
-          options={STATUS_OPTIONS}
-          onChange={(value) => updateFilter('status', value)}
-          value={filters.status || ''}
-        />
         <TopicsPopover
           selectedTopics={filters.topics || []}
           onChange={(value) => updateFilter('topics', value)}
@@ -74,16 +68,6 @@ export default function FilterBar({
                 ?.label || ''
             }
             onRemove={() => removeFilter('difficulty')}
-          />
-        )}
-        {filters.status && (
-          <FilterBadge
-            filterType="Status"
-            value={
-              STATUS_OPTIONS.find((opt) => opt.value === filters.status)
-                ?.label || ''
-            }
-            onRemove={() => removeFilter('status')}
           />
         )}
         {filters.topics &&

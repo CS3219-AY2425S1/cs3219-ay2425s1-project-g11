@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { CheckCircle2, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { Problem } from '@/types/types';
 import { Button } from '../ui/button';
 import { getDifficultyString } from '@/lib/utils';
@@ -11,15 +11,6 @@ import ActionDialog from '../dialogs/ActionDialog';
 import { useRouter } from 'next/navigation';
 import { axiosClient } from '@/network/axiosClient';
 import ProblemDescriptionPanel from './ProblemDescriptionPanel';
-
-function ProblemStatus({ status }: { status: string }) {
-  if (status === 'solved') {
-    return <CheckCircle2 className="h-5 w-5 text-green-500" />;
-  } else if (status === 'attempted') {
-    return <div className="h-5 w-5 rounded-full border-2 border-yellow-500" />;
-  }
-  return null;
-}
 
 interface Props {
   problem: Problem;
@@ -90,10 +81,6 @@ export default function ProblemRow({
   return (
     <>
       <tr className="border-b border-gray-800">
-        <td className="w-28 px-4 py-2">
-          {/* TODO: change to user status for this question */}
-          <ProblemStatus status={'unsolved'} />
-        </td>
         <td
           className="cursor-pointer px-4 py-2 font-medium transition-colors hover:text-blue-500"
           onClick={

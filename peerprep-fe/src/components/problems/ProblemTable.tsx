@@ -30,7 +30,6 @@ export default function ProblemTable({
       <table className="w-full border-collapse">
         <thead>
           <tr className="border-b border-gray-700 text-left">
-            <th className="w-28 px-4 py-2">Status</th>
             <th className="w-1/3 px-4 py-2">Title</th>
             <th className="px-4 py-2">Topics</th>
             <th className="px-4 py-2">Difficulty</th>
@@ -41,9 +40,6 @@ export default function ProblemTable({
           {isLoading
             ? Array.from({ length: 5 }).map((_, index) => (
                 <tr key={index} className="border-b border-gray-800">
-                  <td className="w-28 px-4 py-2">
-                    <Skeleton className="h-5 w-5 bg-gray-600" />
-                  </td>
                   <td className="w-1/3 px-4 py-2">
                     <Skeleton className="h-6 w-full bg-gray-600" />
                   </td>
