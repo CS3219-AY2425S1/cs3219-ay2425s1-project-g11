@@ -12,6 +12,9 @@ import { SignalData } from '@/types/types';
 
 const AudioSharing = () => {
   const [isAudioEnabled, setIsAudioEnabled] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<
+    'Not Connected' | 'Connecting' | 'Connected'
+  >('Not Connected');
   const socketRef = useRef<Socket | null>(null);
   const peerRef = useRef<Instance | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
@@ -45,10 +48,12 @@ const AudioSharing = () => {
       peerRef.current = null;
     }
     setIsAudioEnabled(false);
+    setConnectionStatus('Not Connected');
   };
 
   const createPeer = (stream: MediaStream, initiator: boolean) => {
     console.log('Creating peer as initiator:', initiator);
+    setConnectionStatus('Connecting');
 
     const peer = new SimplePeer({
       initiator,
@@ -96,6 +101,7 @@ const AudioSharing = () => {
     // Add connection state logging
     peer.on('connect', () => {
       console.log('Peer connection established successfully');
+      setConnectionStatus('Connected');
     });
 
     return peer;
@@ -190,12 +196,18 @@ const AudioSharing = () => {
   };
 
   return (
-    <div>
-      <button onClick={toggleAudio}>
+    <div className="flex items-center gap-4">
+      <button
+        onClick={toggleAudio}
+        className="flex items-center gap-1 rounded bg-green-800 px-2 py-1 font-bold text-white transition duration-300 hover:bg-green-700"
+      >
         <FontAwesomeIcon
           icon={isAudioEnabled ? faMicrophone : faMicrophoneSlash}
         />
-        {isAudioEnabled ? ' Mute' : ' Unmute'}
+        {connectionStatus === 'Connected' &&
+          (isAudioEnabled ? 'Mute' : 'Unmute')}
+        {connectionStatus === 'Not Connected' && 'Connect'}
+        {connectionStatus === 'Connecting' && 'Connecting'}
       </button>
     </div>
   );
