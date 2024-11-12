@@ -5,8 +5,15 @@ import ProblemTable from '../../../components/problems/ProblemTable';
 import RejoinSession from './RejoinSession';
 
 export default function MainComponent() {
-  const { problems, filters, updateFilter, removeFilter, isLoading } =
-    useFilteredProblems();
+  const {
+    problems,
+    filters,
+    updateFilter,
+    removeFilter,
+    isLoading,
+    hasMore,
+    loadMore,
+  } = useFilteredProblems();
 
   return (
     <div className="min-h-screen bg-gray-900 p-6 pt-24 text-gray-100">
@@ -17,7 +24,12 @@ export default function MainComponent() {
           updateFilter={updateFilter}
           removeFilter={removeFilter}
         />
-        <ProblemTable problems={problems} isLoading={isLoading} />
+        <ProblemTable
+          problems={problems}
+          isLoading={isLoading}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
+        />
       </div>
     </div>
   );
