@@ -49,6 +49,7 @@ export default function FilterBar({
         <TopicsPopover
           selectedTopics={filters.topics || []}
           onChange={(value) => updateFilter('topics', value)}
+          multiselect={true}
         />
         <div className="flex-grow">
           <Input

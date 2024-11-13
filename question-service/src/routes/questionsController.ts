@@ -56,30 +56,76 @@ router.get('/', async (req: Request, res: Response) => {
     const limitNumber = parseInt(limit as string);
     const skip = (pageNumber - 1) * limitNumber;
 
-    let query: any = {};
+    // Build the query object
+    const query: Record<string, any> = {};
+    const conditions: Record<string, any>[] = [];
+
+    // Add difficulty filter
     if (difficulty) {
-      query.difficulty = parseInt(difficulty as string);
-    }
-    if (status) {
-      query.status = status as string;
-    }
-    if (topics && typeof topics === 'string') {
-      const topicsArray = topics.split(',');
-      query.tags = { $in: topicsArray };
-    }
-    if (search && typeof search === 'string') {
-      query.$or = [{ title: { $regex: search, $options: 'i' } }];
+      conditions.push({
+        difficulty: parseInt(difficulty as string),
+      });
     }
 
-    // Add pagination to MongoDB query
+    // Add status filter
+    if (status) {
+      conditions.push({
+        status: status as string,
+      });
+    }
+
+    // Add topics filter
+    if (topics && typeof topics === 'string') {
+      const topicsArray = topics
+        .split(',')
+        .map((t) => t.trim())
+        .filter(Boolean);
+      if (topicsArray.length > 0) {
+        conditions.push({
+          tags: { $all: topicsArray }, // Changed from $in to $all to match all topics
+        });
+      }
+    }
+
+    // Add search filter
+    if (search && typeof search === 'string') {
+      conditions.push({
+        title: {
+          $regex: search.trim(),
+          $options: 'i',
+        },
+      });
+    }
+
+    // Combine all conditions with $and if there are any
+    if (conditions.length > 0) {
+      query.$and = conditions;
+    }
+
+    // console.log('MongoDB Query:', JSON.stringify(query, null, 2)); // Debug log
+
+    // Execute the query with pagination
     const items = await questionsCollection
       .find(query)
+      .sort({ _id: -1 }) // Optional: Add sorting
       .skip(skip)
       .limit(limitNumber)
       .toArray();
 
-    res.status(200).json(items);
+    // Get total count for pagination
+    const total = await questionsCollection.countDocuments(query);
+
+    res.status(200).json({
+      items,
+      pagination: {
+        page: pageNumber,
+        limit: limitNumber,
+        total,
+        totalPages: Math.ceil(total / limitNumber),
+      },
+    });
   } catch (error) {
+    console.error('Error fetching items:', error);
     res.status(500).json({ error: 'Failed to fetch items' });
   }
 });
