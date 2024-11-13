@@ -33,6 +33,9 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
   const bindingRef = useRef<MonacoBinding | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
   const prevClientsRef = useRef<Map<number, ConnectedClient>>(new Map());
+  const connectionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const awarenessUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const sockServerURI =
     process.env.NEXT_PUBLIC_SOCK_SERVER_URL || 'ws://localhost:4444';
   const { toast } = useToast();
@@ -43,117 +46,125 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
     setLanguage(language);
   };
 
+  const updateLocalAwareness = () => {
+    if (providerRef.current?.awareness && user) {
+      providerRef.current.awareness.setLocalState({
+        client: user.id,
+        user: {
+          name: user.username,
+          color: stringToColor(user.id || ''),
+        },
+      });
+    }
+  };
+
+  const handleAwarenessUpdate = () => {
+    const states = providerRef.current?.awareness.getStates();
+    if (!states) return;
+
+    // Clear any pending awareness update
+    if (awarenessUpdateTimeoutRef.current) {
+      clearTimeout(awarenessUpdateTimeoutRef.current);
+    }
+
+    // Debounce awareness updates
+    awarenessUpdateTimeoutRef.current = setTimeout(() => {
+      const newClients = new Map<number, ConnectedClient>();
+
+      states.forEach((value) => {
+        const state = value as AwarenessState;
+        if (state.client) {
+          newClients.set(state.client, {
+            id: state.client,
+            user: state.user,
+          });
+        }
+      });
+
+      // Only process changes if the client list has actually changed
+      const currentClientIds = Array.from(prevClientsRef.current.keys()).sort();
+      const newClientIds = Array.from(newClients.keys()).sort();
+
+      if (JSON.stringify(currentClientIds) !== JSON.stringify(newClientIds)) {
+        // Handle new connections
+        const newConnections = newClientIds.filter(
+          (id) => !currentClientIds.includes(id) && id.toString() !== user?.id,
+        );
+
+        if (newConnections.length > 0) {
+          const newUsers = newConnections
+            .map((id) => newClients.get(id)?.user.name)
+            .filter(Boolean);
+
+          if (newUsers.length > 0) {
+            toast({
+              title: 'User Connected!',
+              description:
+                newUsers.length === 1
+                  ? `${newUsers[0]} joined the session`
+                  : `${newUsers.slice(0, -1).join(', ')} and ${newUsers[newUsers.length - 1]} joined the session`,
+              variant: 'success',
+            });
+          }
+        }
+
+        // Handle disconnections
+        const disconnections = currentClientIds.filter(
+          (id) => !newClientIds.includes(id) && id.toString() !== user?.id,
+        );
+
+        disconnections.forEach((id) => {
+          const disconnectedUser = prevClientsRef.current.get(id);
+          if (disconnectedUser) {
+            toast({
+              title: 'User Disconnected',
+              description: `${disconnectedUser.user.name} left the session`,
+              variant: 'warning',
+            });
+          }
+        });
+
+        prevClientsRef.current = newClients;
+        setConnectedClients(newClients);
+      }
+    }, 1000); // Debounce for 1 second
+  };
+
   const handleEditorMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
     if (!matchId) {
       console.error('Cannot mount editor: Match ID is undefined');
       return;
     }
+
     editorRef.current = editor;
     const doc = new Y.Doc();
 
-    // Configure the WebsocketProvider with keepalive settings
     providerRef.current = new WebsocketProvider(sockServerURI, matchId, doc, {
       connect: true,
-      params: {
-        keepalive: 'true', // Enable keepalive
-      },
-      resyncInterval: 3000, // More frequent resyncs (3 seconds)
-      maxBackoffTime: 500, // Faster reconnection attempts
+      params: { keepalive: 'true' },
+      WebSocketPolyfill: WebSocket,
+      resyncInterval: 5000,
+      maxBackoffTime: 2500,
+      disableBc: true, // Disable broadcast channel to prevent duplicate events
     });
 
-    // Listen for connection status changes
     providerRef.current.on('status', ({ status }: { status: string }) => {
       if (status === 'connected') {
-        // Re-set local state when reconnected to ensure presence
-        providerRef.current?.awareness.setLocalState({
-          client: user?.id,
-          user: {
-            name: user?.username,
-            color: stringToColor(user?.id || ''),
-          },
-        });
+        // Clear any pending connection timeout
+        if (connectionTimeoutRef.current) {
+          clearTimeout(connectionTimeoutRef.current);
+        }
+
+        // Update awareness state
+        updateLocalAwareness();
       }
     });
 
     const type = doc.getText('monaco');
+    updateLocalAwareness();
 
-    providerRef.current.awareness.setLocalState({
-      client: user?.id,
-      user: {
-        name: user?.username,
-        color: stringToColor(user?.id || ''),
-      },
-    });
-
-    providerRef.current.awareness.on('change', () => {
-      const states = providerRef.current?.awareness.getStates();
-      if (states) {
-        const newClients = new Map<number, ConnectedClient>();
-        // Build new clients map
-        states.forEach((value) => {
-          const state = value as AwarenessState;
-          if (state.client) {
-            newClients.set(state.client, {
-              id: state.client,
-              user: state.user,
-            });
-          }
-        });
-
-        // Compare entire client lists instead of just size
-        const currentClients = Array.from(prevClientsRef.current.keys())
-          .sort()
-          .join(',');
-        const newClientsList = Array.from(newClients.keys()).sort().join(',');
-        const clientsChanged = currentClients !== newClientsList;
-
-        if (clientsChanged) {
-          // Check for new connections
-          const newConnectedUsers = Array.from(newClients.values())
-            .filter(
-              (client) =>
-                !Array.from(prevClientsRef.current.values()).some(
-                  (c) => c.id === client.id,
-                ) && client.id.toString() !== user?.id,
-            )
-            .map((client) => client.user.name);
-
-          if (newConnectedUsers.length > 0) {
-            const description =
-              newConnectedUsers.length === 1
-                ? `${newConnectedUsers[0]} joined the session`
-                : `${newConnectedUsers.slice(0, -1).join(', ')} and ${
-                    newConnectedUsers[newConnectedUsers.length - 1]
-                  } joined the session`;
-
-            toast({
-              title: 'User Connected!',
-              description,
-              variant: 'success',
-            });
-          }
-
-          // Check for disconnections
-          Array.from(prevClientsRef.current.values()).forEach((prevClient) => {
-            if (
-              !Array.from(newClients.values()).some(
-                (client) => client.id === prevClient.id,
-              ) &&
-              prevClient.id.toString() !== user?.id
-            ) {
-              toast({
-                title: 'User Disconnected',
-                description: `${prevClient.user.name} left the session`,
-                variant: 'warning',
-              });
-            }
-          });
-        }
-
-        prevClientsRef.current = newClients;
-        setConnectedClients(newClients);
-      }
-    });
+    // Set up awareness change handler
+    providerRef.current.awareness.on('change', handleAwarenessUpdate);
 
     const model = editorRef.current?.getModel();
     if (editorRef.current && model) {
@@ -164,16 +175,37 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
         providerRef.current.awareness,
       );
     }
+
+    // Set up periodic awareness state refresh
+    const refreshInterval = setInterval(() => {
+      if (providerRef.current?.wsconnected) {
+        updateLocalAwareness();
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => {
+      clearInterval(refreshInterval);
+    };
   };
 
   useEffect(() => {
     return () => {
+      // Clear all timeouts
+      if (connectionTimeoutRef.current) {
+        clearTimeout(connectionTimeoutRef.current);
+      }
+      if (awarenessUpdateTimeoutRef.current) {
+        clearTimeout(awarenessUpdateTimeoutRef.current);
+      }
+
+      // Clean up provider and binding
       if (bindingRef.current) {
         bindingRef.current.destroy();
         bindingRef.current = null;
       }
 
       if (providerRef.current) {
+        providerRef.current.disconnect();
         providerRef.current.destroy();
         providerRef.current = null;
       }
@@ -186,7 +218,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
   }, []);
 
   const handleLeaveSession = () => {
-    // Clear awareness state before leaving
     if (providerRef.current?.awareness) {
       providerRef.current.awareness.setLocalState(null);
     }
