@@ -127,7 +127,7 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
         prevClientsRef.current = newClients;
         setConnectedClients(newClients);
       }
-    }, 5000); // Debounce for 1 second
+    }, 1000);
   };
 
   const handleEditorMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
