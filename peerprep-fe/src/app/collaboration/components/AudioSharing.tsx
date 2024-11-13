@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import io, { Socket } from 'socket.io-client';
 import SimplePeer, { Instance } from 'simple-peer';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -19,36 +19,49 @@ const AudioSharing = () => {
   const peerRef = useRef<Instance | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
   const initializedRef = useRef(false);
+  const audioElementsRef = useRef<HTMLAudioElement[]>([]);
 
   const SERVER_URL =
     process.env.NEXT_PUBLIC_AUDIO_SERVER_URL || 'http://localhost:5555';
 
-  // Add TURN server credentials from environment variables
   const TURN_SERVER = process.env.NEXT_PUBLIC_TURN_SERVER || '';
   const TURN_USERNAME = process.env.NEXT_PUBLIC_TURN_USERNAME;
   const TURN_CREDENTIAL = process.env.NEXT_PUBLIC_TURN_PASSWORD;
 
-  if (!TURN_SERVER || !TURN_USERNAME || !TURN_CREDENTIAL) {
-    // Log which specific TURN variables are missing
-    console.error('Missing TURN env:', {
-      server: !!TURN_SERVER,
-      username: !!TURN_USERNAME,
-      credential: !!TURN_CREDENTIAL,
-    });
-  }
   const cleanupAudio = () => {
+    console.log('Cleaning up audio connections...');
+
+    // Stop and cleanup all audio tracks
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach((track) => {
         track.stop();
       });
       audioStreamRef.current = null;
     }
+
+    // Destroy peer connection
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
+
+    // Disconnect socket
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    // Stop and remove all audio elements
+    audioElementsRef.current.forEach((audio) => {
+      audio.pause();
+      audio.srcObject = null;
+    });
+    audioElementsRef.current = [];
+
+    // Reset states
     setIsAudioEnabled(false);
     setConnectionStatus('Not Connected');
+    initializedRef.current = false;
   };
 
   const createPeer = (stream: MediaStream, initiator: boolean) => {
@@ -61,10 +74,8 @@ const AudioSharing = () => {
       trickle: false,
       config: {
         iceServers: [
-          // Maintain existing STUN servers
           { urls: 'stun:stun.l.google.com:19302' },
           { urls: 'stun:global.stun.twilio.com:3478' },
-          // Add TURN server configuration
           {
             urls: TURN_SERVER,
             username: TURN_USERNAME,
@@ -75,7 +86,7 @@ const AudioSharing = () => {
     });
 
     peer.on('signal', (data: SignalData) => {
-      console.log('Sending signal data:', data);
+      console.log('Sending signal data');
       socketRef.current?.emit('signal', data);
     });
 
@@ -83,6 +94,7 @@ const AudioSharing = () => {
       console.log('Received remote stream');
       const audio = new Audio();
       audio.srcObject = remoteStream;
+      audioElementsRef.current.push(audio); // Track audio element for cleanup
       audio
         .play()
         .catch((error) => console.error('Error playing audio:', error));
@@ -98,7 +110,6 @@ const AudioSharing = () => {
       cleanupAudio();
     });
 
-    // Add connection state logging
     peer.on('connect', () => {
       console.log('Peer connection established successfully');
       setConnectionStatus('Connected');
@@ -129,7 +140,7 @@ const AudioSharing = () => {
     });
 
     socketRef.current.on('signal', async (data: SignalData) => {
-      console.log('Received signal data:', data);
+      console.log('Received signal data');
 
       if (data.type === 'offer' && !peerRef.current) {
         try {
@@ -194,6 +205,28 @@ const AudioSharing = () => {
       cleanupAudio();
     }
   };
+
+  // Cleanup effect when component unmounts
+  useEffect(() => {
+    // Cleanup function that will run when component unmounts
+    return () => {
+      console.log('AudioSharing component unmounting, cleaning up...');
+      cleanupAudio();
+    };
+  }, []);
+
+  // Add window unload handler to ensure cleanup even when page closes
+  useEffect(() => {
+    const handleUnload = () => {
+      cleanupAudio();
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
+    };
+  }, []);
 
   return (
     <div className="flex items-center gap-4">
