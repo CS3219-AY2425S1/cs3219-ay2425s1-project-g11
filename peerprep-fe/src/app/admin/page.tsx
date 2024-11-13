@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useFilteredProblems } from '@/hooks/useFilteredProblems';
-import FilterBar from '../(main)/components/filter/FilterBar';
+import FilterBar from '../../components/filter/FilterBar';
 import ProblemTable from '../../components/problems/ProblemTable';
 import { axiosClient } from '@/network/axiosClient';
 import { Problem } from '@/types/types';

@@ -10,8 +10,8 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { FilterSelect } from '@/app/(main)/components/filter/FilterSelect';
-import { TopicsPopover } from '@/app/(main)/components/filter/TopicsPopover';
+import { FilterSelect } from '@/components/filter/FilterSelect';
+import { TopicsPopover } from '@/components/filter/TopicsPopover';
 import { axiosClient } from '@/network/axiosClient';
 import { DIFFICULTY_OPTIONS } from '@/lib/constants';
 import { UserMatchingRequest } from '@/types/types';
