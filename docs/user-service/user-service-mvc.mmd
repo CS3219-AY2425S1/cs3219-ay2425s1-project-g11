@@ -1,0 +1,46 @@
+graph TD
+    subgraph "User Service MVC Architecture"
+        subgraph "Models"
+            UM[User Model]
+            R[Repository]
+            DB[(MongoDB)]
+            UM --> R
+            R --> DB
+        end
+
+        subgraph "Controllers"
+            UC[User Controller]
+            AC[Auth Controller]
+            OC[OAuth Controller]
+            UC --> R
+            AC --> R
+            OC --> R
+        end
+
+        subgraph "Routes Layer"
+            UR[User Routes]
+            AR[Auth Routes]
+            M[Middleware]
+            UR --> M
+            AR --> M
+            M --> UC
+            M --> AC
+            M --> OC
+        end
+
+        subgraph "External Interface"
+            API[API Gateway]
+            API --> UR
+            API --> AR
+        end
+    end
+
+    classDef models fill:#f9f,stroke:#333,stroke-width:2px
+    classDef controllers fill:#bbf,stroke:#333,stroke-width:2px
+    classDef routes fill:#bfb,stroke:#333,stroke-width:2px
+    classDef external fill:#fbb,stroke:#333,stroke-width:2px
+
+    class UM,R,DB models
+    class UC,AC,OC controllers
+    class UR,AR,M routes
+    class API external

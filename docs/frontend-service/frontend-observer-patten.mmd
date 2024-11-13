@@ -1,0 +1,57 @@
+graph TD
+    subgraph Model[Model Layer]
+        style Model fill:#f9f,stroke:#333,stroke-width:2px
+        subgraph Stores[State Management]
+            AS[Auth Store]
+            CS[Collab Store]
+            QS[Question Store]
+        end
+        subgraph External[External Data]
+            WS[WebSocket]
+            YJS[YJS Doc]
+            API[REST API]
+        end
+    end
+
+    subgraph View[View Layer]
+        style View fill:#bbf,stroke:#333,stroke-width:2px
+        subgraph Pages[Page Components]
+            CP[Collaboration Page]
+            MP[Main Page]
+            NB[Navbar]
+        end
+        subgraph Core[Core Components]
+            CE[Code Editor]
+            PS[Problem Selection]
+            LS[Language Selector]
+            AS[Audio Sharing]
+        end
+    end
+
+    subgraph Controller[Controller Layer]
+        style Controller fill:#bfb,stroke:#333,stroke-width:2px
+        subgraph Handlers[Event Handlers]
+            EH[Editor Mount]
+            CH[Client Connect]
+            MH[Mouse Events]
+        end
+        subgraph Logic[Business Logic]
+            RT[Real-time Sync]
+            SS[Session State]
+            AM[Auth Management]
+        end
+    end
+
+    %% Data Flow
+    AS --> AM --> NB
+    CS --> SS --> CE
+    QS --> PS
+    WS & YJS --> RT --> CE
+    API --> PS
+
+    %% Event Flow
+    EH --> CE
+    CH --> CE
+    MH --> CP
+
+    classDef default fill:#fff,stroke:#333,stroke-width:1px

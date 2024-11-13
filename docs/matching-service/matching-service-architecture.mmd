@@ -1,0 +1,32 @@
+stateDiagram-v2
+    [*] --> ReceiveMatchRequest: User initiates match
+    
+    state "Topic Queue Phase" as TopicPhase {
+        ReceiveMatchRequest --> CheckTopicMatch: Check topic queue
+        CheckTopicMatch --> TopicMatched: Match found
+        CheckTopicMatch --> WaitInTopicQueue: No match
+        WaitInTopicQueue --> TimeoutTopic: Wait 15s
+    }
+
+    state "Difficulty Queue Phase" as DiffPhase {
+        TimeoutTopic --> CheckDifficultyMatch: Transfer to difficulty queue
+        CheckDifficultyMatch --> DifficultyMatched: Match found
+        CheckDifficultyMatch --> WaitInDifficultyQueue: No match
+        WaitInDifficultyQueue --> TimeoutDifficulty: Wait 45s
+    }
+
+    TopicMatched --> NotifyUsers: Generate matchId
+    DifficultyMatched --> NotifyUsers
+    TimeoutDifficulty --> NoMatchNotification
+
+    state "User Actions" as UserActions {
+        state "Can Cancel Anytime" as CancelState
+        CancelState --> RemoveFromQueues
+    }
+
+    NotifyUsers --> RedirectToCollaboration
+    NoMatchNotification --> ReturnToMatchRoom
+    RemoveFromQueues --> ReturnToMatchRoom
+
+    RedirectToCollaboration --> [*]
+    ReturnToMatchRoom --> [*]

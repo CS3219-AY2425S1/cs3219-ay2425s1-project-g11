@@ -1,0 +1,51 @@
+graph TD
+    subgraph "External Layer"
+        API[API Gateway]
+    end
+
+    subgraph "Question Service (Port 4001)"
+        subgraph "Security Layer"
+            CORS[CORS]
+            IV[Input Validation]
+            RBA[Role-Based Access]
+            CORS --> IV
+            IV --> RBA
+        end
+
+        subgraph "Core Components"
+            ES[Express.js Server]
+            ZV[Zod Schema Validation]
+            QH[Query Handler]
+            ES --> ZV
+            ES --> QH
+        end
+
+        subgraph "Service Features"
+            QM[Question Management]
+            QF[Query Filters]
+            PT[Progress Tracking]
+        end
+
+        RBA --> ES
+        ZV --> QM & QF & PT
+        QH --> QM & QF & PT
+    end
+
+    subgraph "Database Layer"
+        DB[(MongoDB)]
+    end
+
+    API --> CORS
+    QM & QF & PT --> DB
+
+    style API fill:#A3C4F3
+    style CORS fill:#A3C4F3
+    style IV fill:#A3C4F3
+    style RBA fill:#A3C4F3
+    style ES fill:#A3C4F3
+    style ZV fill:#A3C4F3
+    style QH fill:#A3C4F3
+    style QM fill:#A3C4F3
+    style QF fill:#A3C4F3
+    style PT fill:#A3C4F3
+    style DB fill:#A3C4F3

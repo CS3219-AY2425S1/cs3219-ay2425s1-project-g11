@@ -1,0 +1,50 @@
+graph TD
+    subgraph "Session Service"
+        subgraph "Collaborative Editor Server (Port 4444)"
+            WS[WebSocket Server]
+            YJS[Y.js Document Store]
+            WS --> YJS
+            YJS --> RT[Real-time Sync]
+        end
+
+        subgraph "Audio Server (Port 5555)"
+            SIO[Socket.IO Server]
+            subgraph "WebRTC Flow"
+                direction LR
+                S1[Signal Exchange] --> 
+                S2[ICE Exchange] --> 
+                S3[P2P Connection]
+            end
+            SIO --> S1
+        end
+
+        subgraph "Shared Components"
+            HC[Health Check]
+            CORS[CORS Handler]
+            ERR[Error Handler]
+        end
+    end
+
+    subgraph "Client Side"
+        C1[Code Editor]
+        C2[Audio Controls]
+        C1 -->|WebSocket| WS
+        C2 -->|Socket.IO| SIO
+    end
+
+    subgraph "Infrastructure"
+        TURN[TURN Server]
+        STUN[STUN Server]
+        C2 -.->|ICE Candidates| STUN
+        C2 -.->|Fallback| TURN
+    end
+
+    classDef server fill:#2374ab,stroke:#fff,stroke-width:2px,color:#fff
+    classDef client fill:#48a9a6,stroke:#fff,stroke-width:2px,color:#fff
+    classDef infra fill:#d4042d,stroke:#fff,stroke-width:2px,color:#fff
+    classDef shared fill:#f7b32b,stroke:#fff,stroke-width:2px,color:#fff
+
+    class WS,SIO,YJS server
+    class C1,C2 client
+    class TURN,STUN infra
+    class HC,CORS,ERR shared

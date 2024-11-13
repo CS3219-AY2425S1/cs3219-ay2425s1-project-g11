@@ -1,0 +1,60 @@
+graph TD
+    subgraph "Client Layer"
+        API[API Gateway]
+    end
+
+    subgraph "Facade Layer (Express App)"
+        EA[Express Application]
+        UR[User Routes]
+        AR[Auth Routes]
+        MW[Middleware]
+        
+        EA --> UR
+        EA --> AR
+        UR --> MW
+        AR --> MW
+    end
+
+    subgraph "Complex Subsystems"
+        subgraph "Authentication"
+            AC[Auth Controller]
+            OC[OAuth Controller]
+            JWT[JWT Handler]
+        end
+
+        subgraph "User Management"
+            UC[User Controller]
+            UM[User Model]
+            R[Repository]
+        end
+
+        subgraph "Security"
+            BAC[Basic Access Control]
+            PH[Password Hasher]
+        end
+    end
+
+    subgraph "Database"
+        DB[(MongoDB)]
+    end
+
+    API --> EA
+    MW --> AC
+    MW --> UC
+    MW --> BAC
+    AC --> JWT
+    AC --> PH
+    OC --> JWT
+    UC --> R
+    R --> UM
+    UM --> DB
+
+    classDef client fill:#f9f,stroke:#333,stroke-width:2px
+    classDef facade fill:#bbf,stroke:#333,stroke-width:2px
+    classDef subsystem fill:#bfb,stroke:#333,stroke-width:2px
+    classDef database fill:#fbb,stroke:#333,stroke-width:2px
+
+    class API client
+    class EA,UR,AR,MW facade
+    class AC,OC,JWT,UC,UM,R,BAC,PH subsystem
+    class DB database

@@ -1,0 +1,46 @@
+graph TD
+    %% State Stores
+    subgraph StateStores["State Management Stores"]
+        AuthStore[AuthStore]
+        CollabStore[CollaborationStore]
+        QuestionStore[QuestionStore]
+    end
+
+    %% Components with State Usage
+    subgraph Components["Key Components"]
+        Navbar[Navbar]
+        MainComponent[MainComponent]
+        CollabEditor[CollaborationEditor]
+        RejoinSession[RejoinSession]
+    end
+
+    %% External Services
+    subgraph External["External Services"]
+        API[API Service]
+        WebSocket[WebSocket Service]
+        YJS[YJS Collaboration]
+    end
+
+    %% State Flow
+    AuthStore --> |User Auth State|Navbar
+    AuthStore --> |User Info|CollabEditor
+    
+    CollabStore --> |Match ID|RejoinSession
+    CollabStore --> |Collaboration State|CollabEditor
+    
+    QuestionStore --> |Problem Data|MainComponent
+    QuestionStore --> |Selected Problem|CollabEditor
+
+    %% External Communications
+    Navbar --> |Login/Logout|API
+    CollabEditor --> |Real-time Updates|WebSocket
+    CollabEditor --> |Document Sync|YJS
+    MainComponent --> |Fetch Problems|API
+
+    %% Component Interactions
+    MainComponent --> |Problem Selection|CollabEditor
+    RejoinSession --> |Session Recovery|CollabEditor
+
+    style StateStores fill:#f9f,stroke:#333,stroke-width:2px
+    style Components fill:#bbf,stroke:#333,stroke-width:2px
+    style External fill:#dfd,stroke:#333,stroke-width:2px

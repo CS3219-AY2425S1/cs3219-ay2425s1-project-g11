@@ -1,0 +1,52 @@
+flowchart TD
+    subgraph Layout ["Layout Components"]
+        style Layout fill:#e6e6ff,stroke:#333
+        RL[RootLayout]
+        ML[MainLayout]
+        CL[CollaborationLayout]
+    end
+
+    subgraph Feature ["Feature Components"]
+        style Feature fill:#ccffcc,stroke:#333
+        MC[MainComponent]
+        CE[CodeEditor]
+        PS[ProblemSelection]
+        AF[AuthForms]
+        MM[MatchMaking]
+    end
+
+    subgraph Shared ["Shared UI Components"]
+        style Shared fill:#ffccff,stroke:#333
+        subgraph Base ["Base UI"]
+            BTN[Button]
+            CARD[Card]
+            DLG[Dialog]
+            TOAST[Toast]
+        end
+        subgraph Complex ["Complex UI"]
+            NAV[Navbar]
+            PROB[ProblemCard]
+            DIA[Dialogs]
+        end
+    end
+
+    %% Layout connections
+    RL --> ML
+    RL --> CL
+    ML --> MC
+    CL --> CE
+
+    %% Feature usage of shared components
+    MC --> PROB
+    MC --> DIA
+    CE --> BTN
+    PS --> CARD
+    AF --> DLG
+    MM --> TOAST
+
+    %% Complex components using base components
+    NAV --> BTN
+    PROB --> CARD
+    DIA --> DLG
+
+    classDef default fill:white,stroke:#333,stroke-width:1px

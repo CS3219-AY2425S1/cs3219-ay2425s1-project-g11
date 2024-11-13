@@ -1,0 +1,63 @@
+flowchart TD
+ subgraph subGraph0["State Stores"]
+        AS["AuthStore"]
+        CS["CollaborationStore"]
+        QS["QuestionStore"]
+  end
+ subgraph subGraph1["Data Models"]
+        UM["User Model"]
+        PM["Problem Model"]
+        CM["Collaboration Model"]
+  end
+ subgraph subGraph2["Model Layer"]
+        subGraph0
+        subGraph1
+  end
+ subgraph subGraph3["Layout Views"]
+        RL["RootLayout"]
+        ML["MainLayout"]
+        CL["CollabLayout"]
+  end
+ subgraph subGraph4["Feature Views"]
+        CE["CodeEditor"]
+        PS["ProblemSelection"]
+        AF["AuthForms"]
+  end
+ subgraph subGraph5["Shared Views"]
+        BU["Base UI Components"]
+        CU["Complex UI Components"]
+  end
+ subgraph subGraph6["View Layer"]
+        subGraph3
+        subGraph4
+        subGraph5
+  end
+ subgraph subGraph7["State Controllers"]
+        AC["Auth Controller"]
+        CC["Collab Controller"]
+        QC["Question Controller"]
+  end
+ subgraph subGraph8["Event Controllers"]
+        EC["Event Handlers"]
+        WC["WebSocket Controller"]
+        YC["YJS Controller"]
+  end
+ subgraph subGraph9["Controller Layer"]
+        subGraph7
+        subGraph8
+  end
+    AS --> AC
+    CS --> CC
+    QS --> QC
+    AC --> AF
+    CC --> CE
+    QC --> PS
+    EC --> BU & CU
+    WC --> CE
+    YC --> CE
+    UM --> AS
+    PM --> QS
+    CM --> CS
+
+
+

@@ -1,0 +1,75 @@
+graph TD
+    subgraph "Frontend Root"
+        ROOT[peerprep-fe]
+    end
+
+    subgraph "Source Code"
+        SRC[src/]
+    end
+
+    subgraph "Pages & Routes"
+        APP[app/]
+        MAIN[main/]
+        COLLAB[collaboration/]
+        ADMIN[admin/]
+    end
+
+    subgraph "Shared Components"
+        COMP[components/]
+        UI[ui/]
+        NAV[navbar/]
+        PROB[problems/]
+        DIA[dialogs/]
+    end
+
+    subgraph "Application Logic"
+        STATE[state/]
+        HOOKS[hooks/]
+        LIB[lib/]
+        TYPES[types/]
+    end
+
+    %% Root level connections
+    ROOT --> SRC
+    ROOT --> CONFIG[Configuration Files]
+
+    %% Source directory connections
+    SRC --> APP
+    SRC --> COMP
+    SRC --> STATE
+    SRC --> HOOKS
+    SRC --> LIB
+    SRC --> TYPES
+
+    %% Page routes
+    APP --> MAIN
+    APP --> COLLAB
+    APP --> ADMIN
+
+    %% Component organization
+    COMP --> UI
+    COMP --> NAV
+    COMP --> PROB
+    COMP --> DIA
+
+    %% State management
+    STATE --> AUTH[useAuthStore]
+    STATE --> COLLABSTORE[useCollaborationStore]
+    STATE --> QSTORE[useQuestionStore]
+
+    %% Configuration files
+    CONFIG --> CF1[components.json]
+    CONFIG --> CF2[package.json]
+    CONFIG --> CF3[tailwind.config.ts]
+
+    classDef root fill:#2374ab,stroke:#fff,stroke-width:2px,color:#fff
+    classDef main fill:#48a9a6,stroke:#fff,stroke-width:2px,color:#fff
+    classDef components fill:#d4042d,stroke:#fff,stroke-width:2px,color:#fff
+    classDef logic fill:#7b2cbf,stroke:#fff,stroke-width:2px,color:#fff
+    classDef config fill:#f7b32b,stroke:#fff,stroke-width:2px,color:#fff
+
+    class ROOT root
+    class SRC,APP,MAIN,COLLAB,ADMIN main
+    class COMP,UI,NAV,PROB,DIA components
+    class STATE,HOOKS,LIB,TYPES,AUTH,COLLABSTORE,QSTORE logic
+    class CONFIG,CF1,CF2,CF3 config
