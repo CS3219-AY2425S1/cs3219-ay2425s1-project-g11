@@ -15,23 +15,35 @@ const AudioSharing = () => {
   const [connectionStatus, setConnectionStatus] = useState<
     'Not Connected' | 'Connecting' | 'Connected'
   >('Not Connected');
+
+  // Use refs for persistent state across remounts
   const socketRef = useRef<Socket | null>(null);
   const peerRef = useRef<Instance | null>(null);
   const audioStreamRef = useRef<MediaStream | null>(null);
-  const initializedRef = useRef(false);
   const audioElementsRef = useRef<HTMLAudioElement[]>([]);
+  const mountCountRef = useRef(0);
+  const lastCleanupTimeRef = useRef(0);
 
+  // Constants
+  const CLEANUP_THRESHOLD = 1000; // Minimum time between cleanups in ms
   const SERVER_URL =
     process.env.NEXT_PUBLIC_AUDIO_SERVER_URL || 'http://localhost:5555';
-
   const TURN_SERVER = process.env.NEXT_PUBLIC_TURN_SERVER || '';
   const TURN_USERNAME = process.env.NEXT_PUBLIC_TURN_USERNAME;
   const TURN_CREDENTIAL = process.env.NEXT_PUBLIC_TURN_PASSWORD;
 
-  const cleanupAudio = () => {
-    console.log('Cleaning up audio connections...');
+  const cleanupAudio = (force = false) => {
+    const now = Date.now();
 
-    // Stop and cleanup all audio tracks
+    // Prevent rapid cleanup unless forced
+    if (!force && now - lastCleanupTimeRef.current < CLEANUP_THRESHOLD) {
+      console.log('Skipping cleanup due to threshold');
+      return;
+    }
+
+    console.log('Cleaning up audio connections...');
+    lastCleanupTimeRef.current = now;
+
     if (audioStreamRef.current) {
       audioStreamRef.current.getTracks().forEach((track) => {
         track.stop();
@@ -39,29 +51,25 @@ const AudioSharing = () => {
       audioStreamRef.current = null;
     }
 
-    // Destroy peer connection
     if (peerRef.current) {
       peerRef.current.destroy();
       peerRef.current = null;
     }
 
-    // Disconnect socket
-    if (socketRef.current) {
+    // Only disconnect socket if we're actually cleaning up (not remounting)
+    if (force && socketRef.current) {
       socketRef.current.disconnect();
       socketRef.current = null;
     }
 
-    // Stop and remove all audio elements
     audioElementsRef.current.forEach((audio) => {
       audio.pause();
       audio.srcObject = null;
     });
     audioElementsRef.current = [];
 
-    // Reset states
     setIsAudioEnabled(false);
     setConnectionStatus('Not Connected');
-    initializedRef.current = false;
   };
 
   const createPeer = (stream: MediaStream, initiator: boolean) => {
@@ -86,7 +94,6 @@ const AudioSharing = () => {
     });
 
     peer.on('signal', (data: SignalData) => {
-      console.log('Sending signal data');
       socketRef.current?.emit('signal', data);
     });
 
@@ -94,7 +101,7 @@ const AudioSharing = () => {
       console.log('Received remote stream');
       const audio = new Audio();
       audio.srcObject = remoteStream;
-      audioElementsRef.current.push(audio); // Track audio element for cleanup
+      audioElementsRef.current.push(audio);
       audio
         .play()
         .catch((error) => console.error('Error playing audio:', error));
@@ -102,16 +109,16 @@ const AudioSharing = () => {
 
     peer.on('error', (err: Error) => {
       console.error('Peer connection error:', err);
-      cleanupAudio();
+      cleanupAudio(true);
     });
 
     peer.on('close', () => {
       console.log('Peer connection closed');
-      cleanupAudio();
+      cleanupAudio(true);
     });
 
     peer.on('connect', () => {
-      console.log('Peer connection established successfully');
+      console.log('Peer connection established');
       setConnectionStatus('Connected');
     });
 
@@ -119,9 +126,13 @@ const AudioSharing = () => {
   };
 
   const initializeSocketAndPeer = () => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    // If socket exists and is connected, reuse it
+    if (socketRef.current?.connected) {
+      console.log('Reusing existing socket connection');
+      return;
+    }
 
+    console.log('Initializing new socket connection');
     socketRef.current = io(SERVER_URL, {
       transports: ['websocket'],
       path: '/socket.io/',
@@ -136,12 +147,10 @@ const AudioSharing = () => {
 
     socketRef.current.on('connect_error', (error: Error) => {
       console.error('Connection error:', error);
-      cleanupAudio();
+      cleanupAudio(true);
     });
 
     socketRef.current.on('signal', async (data: SignalData) => {
-      console.log('Received signal data');
-
       if (data.type === 'offer' && !peerRef.current) {
         try {
           const stream = await navigator.mediaDevices.getUserMedia({
@@ -158,7 +167,7 @@ const AudioSharing = () => {
           peerRef.current = createPeer(stream, false);
         } catch (error) {
           console.error('Error accessing audio devices:', error);
-          cleanupAudio();
+          cleanupAudio(true);
         }
       }
 
@@ -167,7 +176,7 @@ const AudioSharing = () => {
           peerRef.current.signal(data as SimplePeer.SignalData);
         } catch (error) {
           console.error('Error signaling peer:', error);
-          cleanupAudio();
+          cleanupAudio(true);
         }
       }
     });
@@ -202,27 +211,34 @@ const AudioSharing = () => {
       }
     } catch (error) {
       console.error('Error toggling audio:', error);
-      cleanupAudio();
+      cleanupAudio(true);
     }
   };
 
-  // Cleanup effect when component unmounts
+  // Mount/unmount handling
   useEffect(() => {
-    // Cleanup function that will run when component unmounts
+    mountCountRef.current++;
+    console.log(`Component mounted (count: ${mountCountRef.current})`);
+
+    // Only do full cleanup when actually leaving the page
     return () => {
-      console.log('AudioSharing component unmounting, cleaning up...');
-      cleanupAudio();
+      mountCountRef.current--;
+      console.log(`Component unmounting (count: ${mountCountRef.current})`);
+
+      // If this is the last mount point, do a full cleanup
+      if (mountCountRef.current === 0) {
+        cleanupAudio(true);
+      }
     };
   }, []);
 
-  // Add window unload handler to ensure cleanup even when page closes
+  // Handle page unload
   useEffect(() => {
     const handleUnload = () => {
-      cleanupAudio();
+      cleanupAudio(true);
     };
 
     window.addEventListener('beforeunload', handleUnload);
-
     return () => {
       window.removeEventListener('beforeunload', handleUnload);
     };
