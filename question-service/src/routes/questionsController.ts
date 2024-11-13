@@ -20,10 +20,41 @@ router.use(async (_, res, next) => {
   }
 });
 
+// GET all unique tags
+router.get('/tags', async (_: Request, res: Response) => {
+  try {
+    const uniqueTags = await questionsCollection
+      .aggregate([
+        { $unwind: '$tags' },
+        { $group: { _id: '$tags' } },
+        { $project: { _id: 0, tag: '$_id' } },
+      ])
+      .toArray();
+
+    const tags = uniqueTags.map((item) => item.tag);
+    res.status(200).json(tags);
+  } catch (error) {
+    console.error('Error fetching tags:', error);
+    res.status(500).json({ error: 'Failed to fetch tags' });
+  }
+});
+
 // GET all items with filters
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const { difficulty, status, topics, search } = req.query;
+    const {
+      difficulty,
+      status,
+      topics,
+      search,
+      page = '1',
+      limit = '20',
+    } = req.query;
+
+    // Add pagination
+    const pageNumber = parseInt(page as string);
+    const limitNumber = parseInt(limit as string);
+    const skip = (pageNumber - 1) * limitNumber;
 
     let query: any = {};
     if (difficulty) {
@@ -37,13 +68,16 @@ router.get('/', async (req: Request, res: Response) => {
       query.tags = { $in: topicsArray };
     }
     if (search && typeof search === 'string') {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } }, // only search in title
-        // { description: { $regex: search, $options: 'i' } },
-      ];
+      query.$or = [{ title: { $regex: search, $options: 'i' } }];
     }
 
-    const items = await questionsCollection.find(query).toArray();
+    // Add pagination to MongoDB query
+    const items = await questionsCollection
+      .find(query)
+      .skip(skip)
+      .limit(limitNumber)
+      .toArray();
+
     res.status(200).json(items);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch items' });
@@ -146,25 +180,6 @@ router.delete('/:id', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error deleting question:', error);
     res.status(500).json({ error: 'Failed to delete question' });
-  }
-});
-
-// GET all unique tags
-router.get('/tags', async (_: Request, res: Response) => {
-  try {
-    const uniqueTags = await questionsCollection
-      .aggregate([
-        { $unwind: '$tags' },
-        { $group: { _id: '$tags' } },
-        { $project: { _id: 0, tag: '$_id' } },
-      ])
-      .toArray();
-
-    const tags = uniqueTags.map((item) => item.tag);
-    res.status(200).json(tags);
-  } catch (error) {
-    console.error('Error fetching tags:', error);
-    res.status(500).json({ error: 'Failed to fetch tags' });
   }
 });
 

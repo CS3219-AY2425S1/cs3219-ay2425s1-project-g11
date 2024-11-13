@@ -31,7 +31,7 @@ function CollaborationPageContent() {
   );
   const searchParams = useSearchParams();
   const matchId = searchParams.get('matchId');
-  const { problems, isLoading } = useFilteredProblems();
+  const { problems, isLoading, hasMore, loadMore } = useFilteredProblems();
   const { setLastMatchId } = useCollaborationStore();
 
   useEffect(() => {
@@ -99,6 +99,8 @@ function CollaborationPageContent() {
             <ProblemTable
               problems={problems}
               isLoading={isLoading}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
               rowCallback={handleCallback}
             />
           </>

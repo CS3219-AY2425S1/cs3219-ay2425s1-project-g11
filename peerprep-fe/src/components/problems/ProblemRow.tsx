@@ -159,8 +159,8 @@ export default function ProblemRow({
         title="Confirm Delete"
         description={`Are you sure you want to delete \"${problem.title}\"?`}
         callback={() => {
-          setIsDeleteDialogOpen(false);
           handleDeleteClick();
+          setIsDeleteDialogOpen(false);
         }}
         callbackTitle="Delete"
       />
@@ -170,7 +170,10 @@ export default function ProblemRow({
         isOpen={isEditDialogOpen}
         onClose={() => setIsEditDialogOpen(false)}
         problem={problem}
-        requestCallback={handleEditClick}
+        requestCallback={(problem) => {
+          handleEditClick(problem);
+          setIsEditDialogOpen(false);
+        }}
         requestTitle="Update"
       />
 
