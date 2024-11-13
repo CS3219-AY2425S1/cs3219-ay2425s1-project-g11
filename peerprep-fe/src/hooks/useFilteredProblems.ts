@@ -36,10 +36,10 @@ export function useFilteredProblems() {
   const currentPage = useRef(1);
 
   const fetchProblems = useCallback(
-    async (isLoadingMore = false) => {
+    async (pageNum: number, isLoadingMore = false) => {
       if (!isLoadingMore) {
         seenIds.current.clear();
-        currentPage.current = 1;
+        currentPage.current = pageNum;
         setIsEmpty(false);
       }
 
@@ -127,13 +127,13 @@ export function useFilteredProblems() {
   }, []);
 
   useEffect(() => {
-    fetchProblems(false);
+    fetchProblems(1, false);
   }, [filters, fetchProblems]);
 
   const loadMore = useCallback(() => {
     if (!isLoading && hasMore) {
       currentPage.current += 1;
-      fetchProblems(true);
+      fetchProblems(currentPage.current, true);
     }
   }, [isLoading, hasMore, fetchProblems]);
 
@@ -146,5 +146,6 @@ export function useFilteredProblems() {
     hasMore,
     isEmpty,
     loadMore,
+    fetchProblems,
   };
 }
