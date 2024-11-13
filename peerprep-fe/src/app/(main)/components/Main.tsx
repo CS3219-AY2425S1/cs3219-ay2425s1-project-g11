@@ -1,6 +1,6 @@
 'use client';
 import { useFilteredProblems } from '@/hooks/useFilteredProblems';
-import FilterBar from './filter/FilterBar';
+import FilterBar from '../../../components/filter/FilterBar';
 import ProblemTable from '../../../components/problems/ProblemTable';
 import RejoinSession from './RejoinSession';
 

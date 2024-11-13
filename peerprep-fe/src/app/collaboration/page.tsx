@@ -16,6 +16,7 @@ import LoadingSpinner from '@/components/loading/LoadingSpinner';
 import { useCollaborationStore } from '@/state/useCollaborationStore';
 import dynamic from 'next/dynamic';
 import EditorSkeleton from './components/EditorSkeleton';
+import FilterBar from '@/components/filter/FilterBar';
 
 const CollaborationEditor = dynamic(
   () => import('./components/CollaborationEditor'),
@@ -31,7 +32,15 @@ function CollaborationPageContent() {
   );
   const searchParams = useSearchParams();
   const matchId = searchParams.get('matchId');
-  const { problems, isLoading, hasMore, loadMore } = useFilteredProblems();
+  const {
+    problems,
+    isLoading,
+    hasMore,
+    loadMore,
+    filters,
+    updateFilter,
+    removeFilter,
+  } = useFilteredProblems();
   const { setLastMatchId } = useCollaborationStore();
 
   useEffect(() => {
@@ -96,6 +105,11 @@ function CollaborationPageContent() {
         ) : (
           <>
             <h2 className="mb-4 text-2xl font-bold">Choose a question</h2>
+            <FilterBar
+              filters={filters}
+              updateFilter={updateFilter}
+              removeFilter={removeFilter}
+            />
             <ProblemTable
               problems={problems}
               isLoading={isLoading}

@@ -10,8 +10,8 @@ import { Button } from '../ui/button';
 import { Problem } from '@/types/types';
 import { Textarea } from '../ui/textarea';
 import { Input } from '../ui/input';
-import { FilterSelect } from '@/app/(main)/components/filter/FilterSelect';
-import { TopicsPopover } from '@/app/(main)/components/filter/TopicsPopover';
+import { FilterSelect } from '@/components/filter/FilterSelect';
+import { TopicsPopover } from '@/components/filter/TopicsPopover';
 import { DIFFICULTY_OPTIONS, INITIAL_PROBLEM_DATA } from '@/lib/constants';
 
 type Props = {
