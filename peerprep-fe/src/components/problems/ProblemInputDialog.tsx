@@ -86,6 +86,7 @@ function ProblemInputDialog({
           <div className="space-y-2">
             <p>Topics</p>
             <TopicsPopover
+              multiselect={true}
               selectedTopics={problemData.tags}
               onChange={(value) => {
                 setProblemData({ ...problemData, tags: value });
