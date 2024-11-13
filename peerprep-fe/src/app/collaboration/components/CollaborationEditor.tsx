@@ -127,7 +127,7 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
         prevClientsRef.current = newClients;
         setConnectedClients(newClients);
       }
-    }, 1000); // Debounce for 1 second
+    }, 5000); // Debounce for 1 second
   };
 
   const handleEditorMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
@@ -181,7 +181,7 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       if (providerRef.current?.wsconnected) {
         updateLocalAwareness();
       }
-    }, 30000); // Refresh every 30 seconds
+    }, 5000);
 
     return () => {
       clearInterval(refreshInterval);
