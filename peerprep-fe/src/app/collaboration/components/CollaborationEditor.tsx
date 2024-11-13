@@ -29,29 +29,138 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
   const [connectedClients, setConnectedClients] = useState<
     Map<number, ConnectedClient>
   >(new Map());
+
+  // Refs for persistent state
   const providerRef = useRef<WebsocketProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
+  const docRef = useRef<Y.Doc | null>(null);
   const prevClientsRef = useRef<Map<number, ConnectedClient>>(new Map());
+  const mountCountRef = useRef(0);
+  const lastUpdateTimeRef = useRef(0);
+  const clientChangeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   const sockServerURI =
     process.env.NEXT_PUBLIC_SOCK_SERVER_URL || 'ws://localhost:4444';
   const { toast } = useToast();
   const { clearLastMatchId } = useCollaborationStore();
   const router = useRouter();
 
+  const TOAST_DEBOUNCE = 1000; // Minimum time between toasts
+
   const onLanguageChange = (language: string) => {
     setLanguage(language);
   };
 
-  const handleEditorMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
-    if (!matchId) {
-      console.error('Cannot mount editor: Match ID is undefined');
+  const handleClientStateChange = (states: Map<any, any>) => {
+    const now = Date.now();
+    if (now - lastUpdateTimeRef.current < TOAST_DEBOUNCE) {
       return;
     }
-    editorRef.current = editor;
-    const doc = new Y.Doc();
-    providerRef.current = new WebsocketProvider(sockServerURI, matchId, doc);
-    const type = doc.getText('monaco');
+
+    const newClients = new Map<number, ConnectedClient>();
+    states.forEach((value: { [x: string]: any }) => {
+      const state = value as AwarenessState;
+      if (state.client) {
+        newClients.set(state.client, {
+          id: state.client,
+          user: state.user,
+        });
+      }
+    });
+
+    // Clear any pending timeout
+    if (clientChangeTimeoutRef.current) {
+      clearTimeout(clientChangeTimeoutRef.current);
+    }
+
+    // Set a new timeout to handle the change
+    clientChangeTimeoutRef.current = setTimeout(() => {
+      if (newClients.size !== prevClientsRef.current.size) {
+        // Check for new connections
+        const newConnectedUsers = Array.from(newClients.values())
+          .filter(
+            (client) =>
+              !Array.from(prevClientsRef.current.values()).some(
+                (c) => c.id === client.id,
+              ) && client.id.toString() !== user?.id,
+          )
+          .map((client) => client.user.name);
+
+        if (newConnectedUsers.length > 0) {
+          lastUpdateTimeRef.current = now;
+          const description =
+            newConnectedUsers.length === 1
+              ? `${newConnectedUsers[0]} joined the session`
+              : `${newConnectedUsers.slice(0, -1).join(', ')} and ${
+                  newConnectedUsers[newConnectedUsers.length - 1]
+                } joined the session`;
+
+          toast({
+            title: 'User Connected!',
+            description,
+            variant: 'success',
+          });
+        }
+
+        // Check for disconnections
+        Array.from(prevClientsRef.current.values()).forEach((prevClient) => {
+          if (
+            !Array.from(newClients.values()).some(
+              (client) => client.id === prevClient.id,
+            ) &&
+            prevClient.id.toString() !== user?.id
+          ) {
+            lastUpdateTimeRef.current = now;
+            toast({
+              title: 'User Disconnected',
+              description: `${prevClient.user.name} left the session`,
+              variant: 'warning',
+            });
+          }
+        });
+      }
+
+      prevClientsRef.current = newClients;
+      setConnectedClients(newClients);
+    }, 500); // Debounce time for client changes
+  };
+
+  const initializeWebSocket = (editor: MonacoEditor.IStandaloneCodeEditor) => {
+    if (!matchId) {
+      console.error('Cannot initialize: Match ID is undefined');
+      return;
+    }
+
+    // If we already have a connection, don't reinitialize
+    if (providerRef.current?.wsconnected) {
+      console.log('Reusing existing WebSocket connection');
+      return;
+    }
+
+    console.log('Initializing new WebSocket connection');
+
+    // Create new Y.Doc if it doesn't exist
+    if (!docRef.current) {
+      docRef.current = new Y.Doc();
+    }
+
+    // Create new WebSocket provider with valid configuration options
+    providerRef.current = new WebsocketProvider(
+      sockServerURI,
+      matchId,
+      docRef.current,
+      {
+        connect: true,
+        resyncInterval: 3000, // Time between resync attempts
+        disableBc: true, // Disable broadcast channel to prevent duplicate connections
+        params: {
+          version: '1.0.0', // Optional version parameter
+        },
+      },
+    );
+
+    const type = docRef.current.getText('monaco');
 
     providerRef.current.awareness.setLocalState({
       client: user?.id,
@@ -61,84 +170,52 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       },
     });
 
-    providerRef.current.awareness.on('change', () => {
-      const states = providerRef.current?.awareness.getStates();
-      if (states) {
-        const newClients = new Map<number, ConnectedClient>();
-        // Build new clients map
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        states.forEach((value: { [x: string]: any }) => {
-          const state = value as AwarenessState;
-          if (state.client) {
-            newClients.set(state.client, {
-              id: state.client,
-              user: state.user,
-            });
-          }
-        });
-
-        // Only check for connections/disconnections if the NUMBER OF CLIENTS HAS CHANGED
-        if (newClients.size !== prevClientsRef.current.size) {
-          // Check for new connections
-          const newConnectedUsers = Array.from(newClients.values())
-            .filter(
-              (client) =>
-                !Array.from(prevClientsRef.current.values()).some(
-                  (c) => c.id === client.id,
-                ) && client.id.toString() !== user?.id,
-            )
-            .map((client) => client.user.name);
-
-          if (newConnectedUsers.length > 0) {
-            const description =
-              newConnectedUsers.length === 1
-                ? `${newConnectedUsers[0]} joined the session`
-                : `${newConnectedUsers.slice(0, -1).join(', ')} and ${
-                    newConnectedUsers[newConnectedUsers.length - 1]
-                  } joined the session`;
-
-            toast({
-              title: 'User Connected!',
-              description,
-              variant: 'success',
-            });
-          }
-
-          // Check for disconnections
-          Array.from(prevClientsRef.current.values()).forEach((prevClient) => {
-            if (
-              !Array.from(newClients.values()).some(
-                (client) => client.id === prevClient.id,
-              ) &&
-              prevClient.id.toString() !== user?.id
-            ) {
-              toast({
-                title: 'User Disconnected',
-                description: `${prevClient.user.name} left the session`,
-                variant: 'warning',
-              });
-            }
-          });
-        }
-
-        prevClientsRef.current = newClients;
-        setConnectedClients(newClients);
-      }
+    // Add connection status handlers
+    providerRef.current.on('status', ({ status }: { status: string }) => {
+      console.log('WebSocket status:', status);
     });
 
-    const model = editorRef.current?.getModel();
-    if (editorRef.current && model) {
+    providerRef.current.on('connection-error', (event: Event) => {
+      console.error('WebSocket connection error:', event);
+    });
+
+    // Set up awareness change handler with debouncing
+    let changeTimeout: NodeJS.Timeout;
+    providerRef.current.awareness.on('change', () => {
+      clearTimeout(changeTimeout);
+      changeTimeout = setTimeout(() => {
+        const states = providerRef.current?.awareness.getStates();
+        if (states) {
+          handleClientStateChange(states);
+        }
+      }, 100);
+    });
+
+    // Set up Monaco binding
+    const model = editor.getModel();
+    if (editor && model) {
       bindingRef.current = new MonacoBinding(
         type,
         model,
-        new Set([editorRef.current]),
+        new Set([editor]),
         providerRef.current.awareness,
       );
     }
   };
 
-  useEffect(() => {
-    return () => {
+  const handleEditorMount = (editor: MonacoEditor.IStandaloneCodeEditor) => {
+    editorRef.current = editor;
+    initializeWebSocket(editor);
+  };
+
+  // Cleanup function
+  const cleanup = (force = false) => {
+    if (clientChangeTimeoutRef.current) {
+      clearTimeout(clientChangeTimeoutRef.current);
+      clientChangeTimeoutRef.current = null;
+    }
+
+    if (force) {
       if (bindingRef.current) {
         bindingRef.current.destroy();
         bindingRef.current = null;
@@ -149,15 +226,52 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
         providerRef.current = null;
       }
 
+      if (docRef.current) {
+        docRef.current.destroy();
+        docRef.current = null;
+      }
+
       if (editorRef.current) {
         editorRef.current.dispose();
         editorRef.current = null;
       }
+
+      prevClientsRef.current = new Map();
+      setConnectedClients(new Map());
+    }
+  };
+
+  // Mount/unmount handling
+  useEffect(() => {
+    mountCountRef.current++;
+    console.log(`Editor component mounted (count: ${mountCountRef.current})`);
+
+    return () => {
+      mountCountRef.current--;
+      console.log(
+        `Editor component unmounting (count: ${mountCountRef.current})`,
+      );
+
+      // Only do full cleanup when last instance unmounts
+      cleanup(mountCountRef.current === 0);
+    };
+  }, []);
+
+  // Handle page unload
+  useEffect(() => {
+    const handleUnload = () => {
+      cleanup(true);
+    };
+
+    window.addEventListener('beforeunload', handleUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleUnload);
     };
   }, []);
 
   const handleLeaveSession = () => {
-    clearLastMatchId(); // now users last match id will be null
+    cleanup(true);
+    clearLastMatchId();
     router.push('/');
   };
 
