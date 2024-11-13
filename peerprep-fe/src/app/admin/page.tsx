@@ -12,7 +12,6 @@ import { useQuestionStore } from '@/state/useQuestionStore';
 
 function AdminPage() {
   const { dialogOpen, toggleDialogOpen } = useQuestionStore();
-
   const [informationDialog, setInformationDialog] = useState('');
   const {
     problems,
@@ -42,7 +41,7 @@ function AdminPage() {
     if (res.status !== 200) {
       throw new Error('Failed to delete problem');
     }
-    fetchProblems(1, false);
+    await fetchProblems(1, false);
     return res;
   };
 
@@ -61,7 +60,7 @@ function AdminPage() {
         title: problem.title,
       });
 
-      fetchProblems(1, false);
+      await fetchProblems(1, false);
       return res;
     } catch (e: unknown) {
       if (isAxiosError(e)) {
@@ -99,7 +98,7 @@ function AdminPage() {
         title: problem.title,
       });
 
-      fetchProblems(1, false);
+      await fetchProblems(1, false);
       toggleDialogOpen();
       return res;
     } catch (e: unknown) {
