@@ -16,12 +16,14 @@ interface TopicsPopoverProps {
   selectedTopics: string[];
   onChange: (value: string[]) => void;
   isAdmin?: boolean;
+  multiselect: boolean;
 }
 
 export function TopicsPopover({
   selectedTopics,
   onChange,
   isAdmin,
+  multiselect,
 }: TopicsPopoverProps) {
   const [open, setOpen] = useState(false);
   const [topics, setTopics] = useState<string[]>([]);
@@ -44,6 +46,29 @@ export function TopicsPopover({
     topic.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
+  const handleTopicSelection = (selectedTopic: string) => {
+    if (multiselect) {
+      // Multiple selection mode
+      const newSelectedTopics = selectedTopics.includes(selectedTopic)
+        ? selectedTopics.filter((t) => t !== selectedTopic)
+        : [...selectedTopics, selectedTopic];
+      onChange(newSelectedTopics);
+    } else {
+      // Single selection mode
+      const newSelectedTopics = selectedTopics.includes(selectedTopic)
+        ? [] // Deselect if clicking the same topic
+        : [selectedTopic]; // Select only the clicked topic
+      onChange(newSelectedTopics);
+      setOpen(false); // Close popover after selection in single select mode
+    }
+  };
+
+  const getButtonText = () => {
+    if (selectedTopics.length === 0) return 'Select topics';
+    if (!multiselect) return selectedTopics[0];
+    return `${selectedTopics.length} topics selected`;
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -53,9 +78,7 @@ export function TopicsPopover({
           aria-expanded={open}
           className="w-[200px] justify-between border-gray-700 bg-gray-800"
         >
-          {selectedTopics.length > 0
-            ? `${selectedTopics.length} topics selected`
-            : 'Select topics'}
+          {getButtonText()}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
@@ -73,9 +96,7 @@ export function TopicsPopover({
           {isAdmin && (
             <Button
               onClick={async () => {
-                if (!searchTerm.trim()) {
-                  return;
-                }
+                if (!searchTerm.trim()) return;
                 setTopics((prev) => [...prev, searchTerm]);
                 setSearchTerm('');
               }}
@@ -96,12 +117,7 @@ export function TopicsPopover({
                   key={topic}
                   variant="ghost"
                   className="justify-start"
-                  onClick={() => {
-                    const newSelectedTopics = selectedTopics.includes(topic)
-                      ? selectedTopics.filter((t) => t !== topic)
-                      : [...selectedTopics, topic];
-                    onChange(newSelectedTopics);
-                  }}
+                  onClick={() => handleTopicSelection(topic)}
                 >
                   <Check
                     className={cn(

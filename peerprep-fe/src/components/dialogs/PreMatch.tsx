@@ -79,6 +79,7 @@ export function PreMatch() {
             <TopicsPopover
               selectedTopics={selectedTopics}
               onChange={setSelectedTopics}
+              multiselect={false}
             />
           </div>
         </div>

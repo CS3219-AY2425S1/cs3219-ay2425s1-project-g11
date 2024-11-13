@@ -94,11 +94,6 @@ export default function LoginForm({ searchParams }: Props) {
               className="w-full rounded-md border border-gray-600 bg-gray-700 px-3 py-2 text-sm text-white placeholder-gray-400 focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
           </div>
-          <div className="flex items-center justify-start">
-            <a href="#" className="text-sm text-blue-500 hover:underline">
-              Forgot your password?
-            </a>
-          </div>
           <Button className="w-full rounded-md bg-blue-600 py-2 text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-800">
             Sign in
           </Button>
