@@ -109,10 +109,7 @@ const AudioSharing = () => {
 
     peer.on('error', (err: Error) => {
       console.error('Peer connection error:', err);
-      setTimeout(() => {
-        cleanupAudio(true);
-        createPeer(stream, initiator); // Recreate the peer
-      }, 2000);
+      cleanupAudio(true);
     });
 
     peer.on('close', () => {
