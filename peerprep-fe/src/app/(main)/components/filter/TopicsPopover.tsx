@@ -48,18 +48,16 @@ export function TopicsPopover({
 
   const handleTopicSelection = (selectedTopic: string) => {
     if (multiselect) {
-      // Multiple selection mode
       const newSelectedTopics = selectedTopics.includes(selectedTopic)
         ? selectedTopics.filter((t) => t !== selectedTopic)
         : [...selectedTopics, selectedTopic];
       onChange(newSelectedTopics);
     } else {
-      // Single selection mode
       const newSelectedTopics = selectedTopics.includes(selectedTopic)
-        ? [] // Deselect if clicking the same topic
-        : [selectedTopic]; // Select only the clicked topic
+        ? []
+        : [selectedTopic];
       onChange(newSelectedTopics);
-      setOpen(false); // Close popover after selection in single select mode
+      setOpen(false);
     }
   };
 
@@ -116,18 +114,18 @@ export function TopicsPopover({
                 <Button
                   key={topic}
                   variant="ghost"
-                  className="justify-start"
+                  className="h-auto min-h-[2.5rem] justify-start whitespace-normal text-left"
                   onClick={() => handleTopicSelection(topic)}
                 >
                   <Check
                     className={cn(
-                      'mr-2 h-4 w-4',
+                      'mr-2 h-4 w-4 shrink-0',
                       selectedTopics.includes(topic)
                         ? 'opacity-100'
                         : 'opacity-0',
                     )}
                   />
-                  {topic}
+                  <span className="break-words">{topic}</span>
                 </Button>
               ))}
             </div>
