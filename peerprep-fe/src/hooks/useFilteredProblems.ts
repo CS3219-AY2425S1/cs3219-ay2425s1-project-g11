@@ -136,5 +136,6 @@ export function useFilteredProblems() {
     isLoading,
     hasMore,
     loadMore,
+    fetchProblems,
   };
 }

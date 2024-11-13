@@ -20,7 +20,9 @@ function AdminPage() {
     updateFilter,
     removeFilter,
     isLoading,
-    refetchFilter,
+    hasMore,
+    loadMore,
+    fetchProblems,
   } = useFilteredProblems();
 
   const validateEntries = (problem: Problem) => {
@@ -40,7 +42,7 @@ function AdminPage() {
     if (res.status !== 200) {
       throw new Error('Failed to delete problem');
     }
-    refetchFilter();
+    fetchProblems(1, false);
     return res;
   };
 
@@ -59,7 +61,7 @@ function AdminPage() {
         title: problem.title,
       });
 
-      refetchFilter();
+      fetchProblems(1, false);
       return res;
     } catch (e: unknown) {
       if (isAxiosError(e)) {
@@ -97,7 +99,7 @@ function AdminPage() {
         title: problem.title,
       });
 
-      refetchFilter();
+      fetchProblems(1, false);
       toggleDialogOpen();
       return res;
     } catch (e: unknown) {
@@ -132,9 +134,11 @@ function AdminPage() {
         <ProblemTable
           problems={problems}
           isLoading={isLoading}
-          showActions={true}
+          hasMore={hasMore}
+          onLoadMore={loadMore}
           handleDelete={handleDelete}
           handleEdit={handleEdit}
+          showActions={true}
         />
       </div>
       <ProblemInputDialog
