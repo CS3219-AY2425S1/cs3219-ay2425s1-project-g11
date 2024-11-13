@@ -22,6 +22,7 @@ import AudioSharing from './AudioSharing';
 interface CollaborationEditorProps {
   matchId: string | null;
 }
+type AwarenessStates = Map<number, AwarenessState>;
 
 const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
   const { user } = useAuthStore();
@@ -30,7 +31,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
     Map<number, ConnectedClient>
   >(new Map());
 
-  // Refs for persistent state
   const providerRef = useRef<WebsocketProvider | null>(null);
   const bindingRef = useRef<MonacoBinding | null>(null);
   const editorRef = useRef<MonacoEditor.IStandaloneCodeEditor | null>(null);
@@ -46,21 +46,20 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
   const { clearLastMatchId } = useCollaborationStore();
   const router = useRouter();
 
-  const TOAST_DEBOUNCE = 1000; // Minimum time between toasts
+  const TOAST_DEBOUNCE = 1000;
 
   const onLanguageChange = (language: string) => {
     setLanguage(language);
   };
 
-  const handleClientStateChange = (states: Map<any, any>) => {
+  const handleClientStateChange = (states: AwarenessStates) => {
     const now = Date.now();
     if (now - lastUpdateTimeRef.current < TOAST_DEBOUNCE) {
       return;
     }
 
     const newClients = new Map<number, ConnectedClient>();
-    states.forEach((value: { [x: string]: any }) => {
-      const state = value as AwarenessState;
+    states.forEach((state: AwarenessState) => {
       if (state.client) {
         newClients.set(state.client, {
           id: state.client,
@@ -69,15 +68,12 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       }
     });
 
-    // Clear any pending timeout
     if (clientChangeTimeoutRef.current) {
       clearTimeout(clientChangeTimeoutRef.current);
     }
 
-    // Set a new timeout to handle the change
     clientChangeTimeoutRef.current = setTimeout(() => {
       if (newClients.size !== prevClientsRef.current.size) {
-        // Check for new connections
         const newConnectedUsers = Array.from(newClients.values())
           .filter(
             (client) =>
@@ -103,7 +99,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
           });
         }
 
-        // Check for disconnections
         Array.from(prevClientsRef.current.values()).forEach((prevClient) => {
           if (
             !Array.from(newClients.values()).some(
@@ -123,7 +118,7 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
 
       prevClientsRef.current = newClients;
       setConnectedClients(newClients);
-    }, 500); // Debounce time for client changes
+    }, 500);
   };
 
   const initializeWebSocket = (editor: MonacoEditor.IStandaloneCodeEditor) => {
@@ -132,7 +127,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       return;
     }
 
-    // If we already have a connection, don't reinitialize
     if (providerRef.current?.wsconnected) {
       console.log('Reusing existing WebSocket connection');
       return;
@@ -140,22 +134,20 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
 
     console.log('Initializing new WebSocket connection');
 
-    // Create new Y.Doc if it doesn't exist
     if (!docRef.current) {
       docRef.current = new Y.Doc();
     }
 
-    // Create new WebSocket provider with valid configuration options
     providerRef.current = new WebsocketProvider(
       sockServerURI,
       matchId,
       docRef.current,
       {
         connect: true,
-        resyncInterval: 3000, // Time between resync attempts
-        disableBc: true, // Disable broadcast channel to prevent duplicate connections
+        resyncInterval: 3000,
+        disableBc: true,
         params: {
-          version: '1.0.0', // Optional version parameter
+          version: '1.0.0',
         },
       },
     );
@@ -170,7 +162,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       },
     });
 
-    // Add connection status handlers
     providerRef.current.on('status', ({ status }: { status: string }) => {
       console.log('WebSocket status:', status);
     });
@@ -179,19 +170,18 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
       console.error('WebSocket connection error:', event);
     });
 
-    // Set up awareness change handler with debouncing
     let changeTimeout: NodeJS.Timeout;
     providerRef.current.awareness.on('change', () => {
       clearTimeout(changeTimeout);
       changeTimeout = setTimeout(() => {
-        const states = providerRef.current?.awareness.getStates();
+        const states =
+          providerRef.current?.awareness.getStates() as AwarenessStates;
         if (states) {
           handleClientStateChange(states);
         }
       }, 100);
     });
 
-    // Set up Monaco binding
     const model = editor.getModel();
     if (editor && model) {
       bindingRef.current = new MonacoBinding(
@@ -208,7 +198,6 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
     initializeWebSocket(editor);
   };
 
-  // Cleanup function
   const cleanup = (force = false) => {
     if (clientChangeTimeoutRef.current) {
       clearTimeout(clientChangeTimeoutRef.current);
@@ -241,23 +230,19 @@ const CollaborationEditor = ({ matchId }: CollaborationEditorProps) => {
     }
   };
 
-  // Mount/unmount handling
   useEffect(() => {
-    mountCountRef.current++;
-    console.log(`Editor component mounted (count: ${mountCountRef.current})`);
+    const currentMountCount = mountCountRef.current + 1;
+    mountCountRef.current = currentMountCount;
+    console.log(`Editor component mounted (count: ${currentMountCount})`);
 
     return () => {
-      mountCountRef.current--;
-      console.log(
-        `Editor component unmounting (count: ${mountCountRef.current})`,
-      );
-
-      // Only do full cleanup when last instance unmounts
-      cleanup(mountCountRef.current === 0);
+      const finalMountCount = currentMountCount - 1;
+      mountCountRef.current = finalMountCount;
+      console.log(`Editor component unmounting (count: ${finalMountCount})`);
+      cleanup(finalMountCount === 0);
     };
   }, []);
 
-  // Handle page unload
   useEffect(() => {
     const handleUnload = () => {
       cleanup(true);
