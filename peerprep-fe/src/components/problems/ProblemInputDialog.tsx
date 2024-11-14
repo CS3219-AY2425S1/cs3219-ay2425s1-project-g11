@@ -68,6 +68,7 @@ function ProblemInputDialog({
                 setProblemData({ ...problemData, difficulty: Number(value) });
               }}
               value={String(problemData.difficulty)}
+              showSelectedValue={true}
             />
           </div>
           <div className="space-y-2">
